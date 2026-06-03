@@ -2,13 +2,23 @@ services:
   app:
     build: .
     container_name: inventory_app
-    ports:
-      - "8000:8000"
-      - "5173:5173"
+    restart: always
     volumes:
       - .:/var/www
     depends_on:
       - db
+
+  nginx:
+    image: nginx:alpine
+    container_name: inventory_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf # File konf nginx
+    depends_on:
+      - app
 
   db:
     image: mysql:8.0
@@ -19,8 +29,6 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: laravel
       MYSQL_PASSWORD: root
-    ports:
-      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
 

@@ -13,7 +13,23 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 
-#[Fillable(['name', 'username', 'email', 'password', 'role', 'rfid_uid', 'is_active','class_id'])]
+#[Fillable([
+    'name',
+    'username',
+    'email',
+    'password',
+    'role',
+    'rfid_uid',
+    'is_active',
+    'class_id',
+    'nis',
+    'phone',
+    'address',
+    'avatar',
+    'nip',
+    'position',
+    'avatar',
+])]
 
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
@@ -58,7 +74,11 @@ class User extends Authenticatable
         return Str::of($this->name)
             ->explode(' ')
             ->take(2)
-            ->map(fn ($word) => Str::substr($word, 0, 1))
+            ->map(fn($word) => Str::substr($word, 0, 1))
             ->implode('');
+    }
+    public function scopeStaffOnly($query)
+    {
+        return $query->whereIn('role', ['guru', 'staff', 'admin']);
     }
 }

@@ -7,53 +7,90 @@ use App\Models\ClassModel;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Hash;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 class StudentManagement extends Component
 {
     use WithPagination;
+    use WithFileUploads;
 
     public $search = '';
     public $studentId, $name, $username, $rfid_uid, $class_id; // class_id ditambahkan
+    public $nis, $phone, $address, $avatar, $new_avatar;
+    public $selectedStudent;
+    public $isDetailModalOpen = false;
     public $isModalOpen = false;
 
+    public function showDetail($id)
+    {
+        $this->selectedStudent = User::with(['class.prodi'])->findOrFail($id);
+        $this->isDetailModalOpen = true;
+    }
     public function render()
     {
         return view('livewire.student-management', [
-            // Eager load class agar tidak berat saat load data
-            'students' => User::with('class')
+            'students' => User::with(['class.prodi']) // Eager load sampai ke prodi
                 ->where('role', 'siswa')
-                ->where(fn($q) => $q->where('name', 'like', '%'.$this->search.'%')->orWhere('rfid_uid', 'like', '%'.$this->search.'%'))
+                ->where(
+                    fn($q) =>
+                    $q->where('name', 'like', '%' . $this->search . '%')
+                        ->orWhere('rfid_uid', 'like', '%' . $this->search . '%')
+                        ->orWhere('nis', 'like', '%' . $this->search . '%')
+                )
                 ->latest()->paginate(10),
-            'classes' => ClassModel::orderBy('name')->get()
+            'classes' => ClassModel::with('prodi')->get()
         ])->layout('layouts.app');
     }
 
     public function create()
     {
-        $this->reset(['studentId', 'name', 'username', 'rfid_uid', 'class_id']);
+        $this->reset(['studentId', 'name', 'username', 'rfid_uid', 'class_id', 'nis', 'phone', 'address', 'avatar', 'new_avatar']);
         $this->isModalOpen = true;
     }
 
     public function store()
     {
-        $this->validate([
+        $rules = [
             'name' => 'required',
-            'username' => 'required|unique:users,username,'.$this->studentId,
-            'rfid_uid' => 'required|unique:users,rfid_uid,'.$this->studentId,
-            'class_id' => 'required|exists:class_models,id', // Validasi kelas wajib diisi
-        ]);
+            'username' => 'required|unique:users,username,' . $this->studentId,
+            'nis' => 'nullable|unique:users,nis,' . $this->studentId,
+            'rfid_uid' => 'required|unique:users,rfid_uid,' . $this->studentId,
+            'class_id' => 'required|exists:class_models,id',
+            'new_avatar' => 'nullable|image|max:500', // Max 1MB
+        ];
 
-        User::updateOrCreate(['id' => $this->studentId], [
+        $this->validate($rules);
+
+        $data = [
             'name' => $this->name,
             'username' => $this->username,
+            'nis' => $this->nis,
+            'phone' => $this->phone,
+            'address' => $this->address,
             'rfid_uid' => $this->rfid_uid,
-            'class_id' => $this->class_id, // Simpan ID Kelas
-            'password' => Hash::make('12345678'),
+            'class_id' => $this->class_id,
             'role' => 'siswa',
-        ]);
+        ];
+
+        // Set password default jika user baru
+        if (!$this->studentId) {
+            $data['password'] = Hash::make('12345678');
+        }
+
+        // Handle Upload Foto
+        if ($this->new_avatar) {
+            // Hapus foto lama jika ada
+            if ($this->avatar) {
+                Storage::disk('public')->delete($this->avatar);
+            }
+            $data['avatar'] = $this->new_avatar->store('avatars', 'public');
+        }
+
+        User::updateOrCreate(['id' => $this->studentId], $data);
 
         $this->isModalOpen = false;
-        session()->flash('message', 'Data Siswa berhasil disimpan.');
+        session()->flash('message', 'Data Siswa berhasil diperbarui.');
     }
 
     public function edit($id)
@@ -62,8 +99,22 @@ class StudentManagement extends Component
         $this->studentId = $id;
         $this->name = $student->name;
         $this->username = $student->username;
+        $this->nis = $student->nis;
+        $this->phone = $student->phone;
+        $this->address = $student->address;
         $this->rfid_uid = $student->rfid_uid;
-        $this->class_id = $student->class_id; // Load ID kelas saat edit
+        $this->class_id = $student->class_id;
+        $this->avatar = $student->avatar;
         $this->isModalOpen = true;
+    }
+
+    public function delete($id)
+    {
+        $student = User::find($id);
+        if ($student->avatar) {
+            Storage::disk('public')->delete($student->avatar);
+        }
+        $student->delete();
+        session()->flash('message', 'Siswa berhasil dihapus.');
     }
 }

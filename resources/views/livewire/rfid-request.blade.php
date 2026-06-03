@@ -4,6 +4,17 @@
     }" x-init="focusInput(); setInterval(() => focusInput(), 800)" @click="focusInput()"
     @keydown.window="focusInput()">
 
+    <div class="flex justify-center gap-4 mb-8">
+        <a href="{{ route('rfid.request') }}"
+            class="px-6 py-2 rounded-full font-bold text-sm transition-all {{ request()->routeIs('rfid.request') ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-zinc-500 border border-zinc-200' }}">
+            Barang Habis Pakai
+        </a>
+        <a href="{{ route('kios-aset') }}"
+            class="px-6 py-2 rounded-full font-bold text-sm transition-all {{ request()->routeIs('kios-aset') ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-zinc-500 border border-zinc-200' }}">
+            Peminjaman Aset
+        </a>
+    </div>
+
     <div class="mb-8 text-center">
         <h2 class="text-2xl font-black text-zinc-900">Layanan Sarpras Mandiri</h2>
         <p class="text-zinc-500 text-sm">Silakan tap kartu RFID Anda untuk memulai permintaan</p>
@@ -93,9 +104,11 @@
                 </div>
                 <div class="text-right">
                     <p class="text-[10px] text-zinc-500 uppercase font-bold">
-                        {{ $this->userData->role == 'siswa' ? 'Kelas' : 'Unit' }}</p>
+                        {{ $this->userData->role == 'siswa' ? 'Kelas' : 'Unit' }}
+                    </p>
                     <p class="font-black text-zinc-900">
-                        {{ $this->userData->class->name ?? strtoupper($this->userData->role) }}</p>
+                        {{ $this->userData->class->name ?? strtoupper($this->userData->role) }}
+                    </p>
                 </div>
             </div>
 

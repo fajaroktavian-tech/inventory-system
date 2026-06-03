@@ -14,6 +14,7 @@
         <flux:table.columns>
             <flux:table.column>No</flux:table.column>
             <flux:table.column>Nama Kelas</flux:table.column>
+            <flux:table.column>Program Keahlian</flux:table.column> {{-- Tambah Kolom --}}
             <flux:table.column>Aksi</flux:table.column>
         </flux:table.columns>
 
@@ -22,6 +23,10 @@
             <flux:table.row :key="$class->id">
                 <flux:table.cell>{{ ($classes->currentPage() - 1) * $classes->perPage() + $loop->iteration }}</flux:table.cell>
                 <flux:table.cell font="medium">{{ $class->name }}</flux:table.cell>
+                <flux:table.cell>
+                    {{-- Menampilkan Alias Prodi --}}
+                    <flux:badge size="sm" color="zinc">{{ $class->prodi->alias ?? '-' }}</flux:badge>
+                </flux:table.cell>
                 <flux:table.cell>
                     <div class="flex gap-2">
                         <flux:button variant="filled" size="sm" icon="pencil-square" wire:click="edit({{ $class->id }})" 
@@ -38,10 +43,19 @@
 
     <div class="mt-4">{{ $classes->links() }}</div>
 
-    <flux:modal wire:model="isModalOpen" class="md:w-[400px]">
+    <flux:modal wire:model="isModalOpen" class="md:w-[450px]">
         <form wire:submit="store" class="space-y-4">
             <flux:heading size="lg">{{ $classId ? 'Edit Kelas' : 'Tambah Kelas' }}</flux:heading>
+            
             <flux:input label="Nama Kelas" wire:model="name" placeholder="Contoh: XII RPL 1" />
+
+            {{-- Input Select untuk Memilih Prodi --}}
+            <flux:select label="Program Keahlian" wire:model="prodi_id" placeholder="Pilih Prodi...">
+                @foreach($prodis as $prodi)
+                    <flux:select.option value="{{ $prodi->id }}">{{ $prodi->name }} ({{ $prodi->alias }})</flux:select.option>
+                @endforeach
+            </flux:select>
+
             <div class="flex mt-6">
                 <flux:spacer />
                 <flux:button variant="ghost" wire:click="$set('isModalOpen', false)" class="mr-2">Batal</flux:button>

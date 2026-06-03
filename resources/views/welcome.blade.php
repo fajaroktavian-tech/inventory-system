@@ -15,6 +15,7 @@
             height: 45px !important;
             width: auto;
         }
+
         html {
             scroll-behavior: smooth;
         }
@@ -112,9 +113,10 @@
 
             <div class="hidden lg:flex lg:flex-1 lg:justify-end items-center gap-4">
                 <a href="{{ route('dashboard') }}" class="text-sm font-bold text-gray-700">Log in</a>
-                <a href="{{ route('rfid.request') }}"
-                    class="bg-red-600 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-red-700 shadow-md">Kios
-                    RFID</a>
+                <a href="{{ route('kios.gateway') }}" {{-- UBAH INI --}}
+                    class="bg-red-600 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-red-700 shadow-md">
+                    Kios RFID
+                </a>
             </div>
         </nav>
     </header>

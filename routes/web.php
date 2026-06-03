@@ -15,10 +15,19 @@ use App\Livewire\RequestApproval;
 use App\Livewire\InventoryReport;
 use App\Livewire\RequestHistory;
 use App\Livewire\ActivityMonitor;
+use App\Livewire\StaffManagement;
+use App\Livewire\AssetItemManagement;
+use App\Livewire\AssetRegistration;
+use App\Livewire\AssetLoanManagement;
+use App\Livewire\KiosGateway;
+use App\Livewire\AssetRfidLoan;
+use App\Livewire\AssetReport;
+use App\Livewire\DashboardAsset;
 use App\Models\Item;
 use App\Models\Room;
 use App\Models\Category;
 use App\Models\RequestModel;
+use App\Livewire\ProdiManagement;
 
 Route::get('/', function () {
     // 1. Total Item (Menjumlahkan semua kolom stock)
@@ -47,12 +56,14 @@ Route::get('/', function () {
         'lastUpdate'
     ));
 })->name('home');
-// Route::view('/', 'welcome')->name('home');
-//Route::get('/monitor-sarpras', Dashboard::class)->name('public.display');
 
 Route::get('/kios-permintaan', RfidRequest::class)->name('rfid.request');
 
 Route::get('/monitor-aktivitas', ActivityMonitor::class)->name('monitor.aktivitas');
+
+Route::get('/kios-aset', AssetRfidLoan::class)->name('kios-aset');
+
+Route::get('/kios', KiosGateway::class)->name('kios.gateway');
 
 
 // --- AKSES TERPROTEKSI (HARUS LOGIN) ---
@@ -60,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Dashboard Utama
     Route::get('dashboard', Dashboard::class)->name('dashboard');
+    Route::get('/dashboard-asset', DashboardAsset::class)->name('dashboard-asset');
     Route::middleware(['can:create-request'])->group(function () {
         Route::get('/buat-permintaan', UserRequest::class)->name('user.request');
         Route::get('/riwayat-permintaan', RequestHistory::class)->name('request.history');
@@ -72,13 +84,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/items-in', ItemIncomingManagement::class)->name('items-in.index');
         Route::get('/admin/approval', RequestApproval::class)->name('request.approval');
         Route::get('/admin/laporan', InventoryReport::class)->name('report');
+        Route::get('/asset-master', AssetItemManagement::class)->name('asset-master.index');
+        Route::get('/asset-registration', AssetRegistration::class)->name('asset-registration.index');
+        Route::get('/asset-loans', AssetLoanManagement::class)->name('asset-loans.index');
+        Route::get('/rooms', RoomManagement::class)->name('rooms.index');
+        Route::get('/asset-report', AssetReport::class)->name('asset-report');
         
         // Grup Manajemen Data Master (Admin Saja)
         Route::prefix('admin')->group(function () {
             Route::get('/users', UserManagement::class)->name('users.index');
             Route::get('/classes', ClassManagement::class)->name('classes.index');
-            Route::get('/rooms', RoomManagement::class)->name('rooms.index');
             Route::get('/students', StudentManagement::class)->name('students.index');
+            Route::get('/prodis', ProdiManagement::class)->name('prodis.index');
+            Route::get('/staff', StaffManagement::class)->name('staff.index');
         });
     });
 });

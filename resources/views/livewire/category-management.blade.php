@@ -68,4 +68,5 @@
             </div>
         </form>
     </flux:modal>
+    
 </div>
