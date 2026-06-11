@@ -7,7 +7,11 @@
 
     <div class="flex justify-between mt-8 mb-4">
         <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="Cari ruangan..." class="max-w-xs" />
-        <flux:button variant="primary" icon="plus" wire:click="create">Tambah Ruangan</flux:button>
+        <div class="flex gap-2">
+            <flux:button icon="question-mark-circle" wire:click="$set('isRoomGuideOpen', true)" variant="ghost">Panduan
+            </flux:button>
+            <flux:button variant="primary" icon="plus" wire:click="create">Tambah Ruangan</flux:button>
+        </div>
     </div>
 
     @if (session()->has('message'))
@@ -178,5 +182,39 @@
                 </div>
             </div>
         @endif
+    </flux:modal>
+
+    <flux:modal wire:model="isRoomGuideOpen" class="md:w-[600px]">
+        <div class="space-y-6">
+            <flux:heading size="lg">Panduan Kelola Ruangan</flux:heading>
+
+            <div class="space-y-4 text-sm text-zinc-600 dark:text-zinc-300">
+                <p>Halaman ini berfungsi untuk mendata lokasi fisik aset di lingkungan sekolah.</p>
+
+                <ul class="list-decimal list-inside space-y-2">
+                    <li><strong>Naming Convention:</strong> Gunakan nama yang spesifik dan mudah dikenali (Contoh: "Lab
+                        RPL 1" atau "TU - Lantai 2") agar memudahkan saat proses mutasi barang.</li>
+                    <li><strong>Melihat Isi Ruangan:</strong> Klik ikon <strong>Mata (Eye)</strong> pada baris ruangan
+                        untuk melihat detail daftar barang yang tersimpan di ruangan tersebut.</li>
+                    <li><strong>Statistik Ruangan:</strong> Di dalam modal detail, Anda bisa memantau kondisi barang
+                        (Baik/Rusak) dan total nilai aset secara real-time.</li>
+                    <li><strong>Dokumentasi (DIR):</strong> Anda dapat menggunakan tombol <strong>Cetak DIR</strong>
+                        untuk mendapatkan Daftar Inventaris Ruangan (DIR) dalam format A4, yang berguna untuk penempelan
+                        daftar barang di pintu ruangan.</li>
+                    <li><strong>Data Kaitan:</strong> Berhati-hatilah saat menghapus ruangan; pastikan aset yang ada di
+                        dalamnya sudah dipindahkan ke lokasi lain agar data tidak hilang.</li>
+                </ul>
+
+                <div class="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200">
+                    <flux:heading size="sm" class="text-zinc-800 dark:text-zinc-100">Tips Operasional:</flux:heading>
+                    <p class="mt-1 text-xs">Selalu perbarui daftar ini jika sekolah melakukan penambahan ruangan baru
+                        atau perubahan fungsi ruangan agar pelaporan aset tetap akurat.</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <flux:button variant="primary" wire:click="$set('isRoomGuideOpen', false)">Mengerti</flux:button>
+            </div>
+        </div>
     </flux:modal>
 </div>

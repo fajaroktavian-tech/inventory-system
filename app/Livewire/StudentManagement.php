@@ -39,7 +39,9 @@ class StudentManagement extends Component
                         ->orWhere('nis', 'like', '%' . $this->search . '%')
                 )
                 ->latest()->paginate(10),
-            'classes' => ClassModel::with('prodi')->get()
+            'classes' => ClassModel::with('prodi')
+            ->orderBy('name', 'asc') 
+            ->get()
         ])->layout('layouts.app');
     }
 
@@ -116,5 +118,14 @@ class StudentManagement extends Component
         }
         $student->delete();
         session()->flash('message', 'Siswa berhasil dihapus.');
+    }
+    public function toggleStatus($id)
+    {
+        $student = User::findOrFail($id);
+        // Jika true jadi false, jika false jadi true
+        $student->is_active = !$student->is_active;
+        $student->save();
+
+        session()->flash('message', 'Status siswa berhasil diperbarui.');
     }
 }

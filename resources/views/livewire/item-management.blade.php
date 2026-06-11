@@ -7,15 +7,24 @@
             class="max-w-xs" />
 
         <div class="flex gap-2">
-            {{-- Button Export Excel --}}
-            <flux:button icon="document-text" variant="outline" wire:click="exportExcel">
-                Export Excel
-            </flux:button>
-
-            {{-- Button Export PDF --}}
-            <flux:button icon="printer" variant="outline" wire:click="exportPDF">
-                Export PDF
-            </flux:button>
+            {{-- Dropdown Export --}}
+            <flux:button icon="question-mark-circle" wire:click="$set('isItemsGuideOpen', true)" variant="ghost">
+                    Panduan
+                </flux:button>
+            <flux:dropdown align="end">
+                
+                <flux:button icon-trailing="chevron-down" variant="outline">
+                    Export Data
+                </flux:button>
+                <flux:menu>
+                    <flux:menu.item icon="document-text" wire:click="exportExcel">
+                        Export ke Excel
+                    </flux:menu.item>
+                    <flux:menu.item icon="printer" wire:click="exportPDF">
+                        Export ke PDF
+                    </flux:menu.item>
+                </flux:menu>
+            </flux:dropdown>
 
             <flux:button variant="primary" icon="plus" wire:click="create">Tambah Barang</flux:button>
         </div>
@@ -48,7 +57,17 @@
 
                     <flux:table.cell font="medium">{{ $item->name }}</flux:table.cell>
                     <flux:table.cell>{{ $item->category->name ?? 'Tanpa Kategori' }}</flux:table.cell>
-                    <flux:table.cell>{{ $item->stock }} {{ $item->unit }}</flux:table.cell>
+                    <flux:table.cell>
+                        @php
+                            // Logika: Jika stok <= min_stock, berikan warna merah/peringatan
+                            $isCritical = $item->stock <= $item->min_stock;
+                        @endphp
+
+                        <span
+                            class="{{ $isCritical ? 'font-bold text-red-600 dark:text-red-400' : 'text-zinc-700 dark:text-zinc-300' }}">
+                            {{ $item->stock }} {{ $item->unit }}
+                        </span>
+                    </flux:table.cell>
                     <flux:table.cell>{{ $item->min_stock }}</flux:table.cell>
 
                     <flux:table.cell>
@@ -104,5 +123,41 @@
                 <flux:button type="submit" variant="primary">Simpan</flux:button>
             </div>
         </form>
+    </flux:modal>
+
+    <flux:modal wire:model="isItemsGuideOpen" class="md:w-[600px]">
+        <div class="space-y-6">
+            <flux:heading size="lg">Panduan Kelola Inventaris</flux:heading>
+
+            <div class="space-y-4 text-sm text-zinc-600 dark:text-zinc-300">
+                <p>Halaman ini digunakan untuk mengelola data master barang. Harap perhatikan hal-hal berikut:</p>
+
+                <ul class="list-decimal list-inside space-y-2">
+                    <li><strong>Tambah Barang:</strong> Klik "Tambah Barang" untuk mendaftarkan barang baru ke sistem.
+                    </li>
+                    <li><strong>Edit Barang:</strong> Gunakan tombol Edit (kuning) untuk memperbarui nama, kategori,
+                        atau batas stok minimal.</li>
+                    <li><strong>Aturan Stok:</strong> Anda <strong>tidak bisa</strong> menambah stok langsung di sini.
+                        Stok akan terupdate otomatis saat Anda melakukan transaksi di menu <strong>Barang
+                            Masuk</strong>.</li>
+                    <li><strong>Minimal Stok:</strong> Isi angka ini sebagai pengingat sistem. Jika stok saat ini di
+                        bawah angka ini, sistem akan memberikan notifikasi agar Anda segera melakukan pengadaan.</li>
+                    <li><strong>Hapus Barang:</strong> Hapus barang hanya jika barang tersebut sudah tidak ada atau
+                        tidak digunakan lagi di lingkungan sekolah.</li>
+                </ul>
+
+                <div
+                    class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-100 dark:border-yellow-800">
+                    <flux:heading size="sm" class="text-yellow-800 dark:text-yellow-300">Penting:</flux:heading>
+                    <p class="mt-1 text-xs">Untuk menambah jumlah fisik barang yang ada di gudang, silakan kunjungi menu
+                        <strong>Barang Masuk</strong> agar data inventaris tetap akurat dan tercatat dalam laporan.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <flux:button variant="primary" wire:click="$set('isItemsGuideOpen', false)">Mengerti</flux:button>
+            </div>
+        </div>
     </flux:modal>
 </div>

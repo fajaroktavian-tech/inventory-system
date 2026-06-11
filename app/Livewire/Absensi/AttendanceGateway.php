@@ -1,0 +1,137 @@
+<?php
+
+namespace App\Livewire\Absensi;
+
+use App\Models\User;
+use App\Models\Attendance;
+use Carbon\Carbon;
+use Livewire\Component;
+use App\Models\Schedule;
+
+class AttendanceGateway extends Component
+{
+    public $searchRfid = '';
+    public $lastTap = null;
+    public $message = '';
+    public $status = '';
+
+    // Pengaturan Jam Sekolah (Bisa dipindahkan ke tabel setting nantinya)
+    // protected $schoolSettings = [
+    //     'start_time' => '07:00:00', // Jam masuk normal
+    //     'limit_time' => '07:15:00', // Batas akhir toleransi terlambat
+    //     'return_time' => '15:00:00', // Jam pulang
+    // ];
+
+    public function updatedSearchRfid()
+    {
+        $this->processAttendance();
+    }
+
+    public function processAttendance()
+    {
+        // Trim input untuk menghindari spasi atau karakter tak terlihat dari scanner
+        $rfidInput = trim($this->searchRfid);
+
+        if (Carbon::now()->isWeekend()) {
+            $this->message = "Hari ini libur. Absensi dinonaktifkan.";
+            $this->status = "error";
+            $this->dispatch('message-updated');
+            $this->dispatch('play-sound', status: 'error');
+            return;
+        }
+
+        if (empty($rfidInput))
+            return;
+        $this->message = '';
+        $this->status = '';
+
+        // 1. Cari User berdasarkan RFID
+        // PASTIKAN: rfid_uid adalah nama kolom yang benar di tabel users Anda
+        $user = User::where('rfid_uid', $rfidInput)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$user) {
+            // PENTING: Reset lastTap agar foto siswa sebelumnya hilang saat kartu tidak terdaftar di-tap
+            $this->lastTap = null;
+
+            $this->message = "Kartu Tidak Terdaftar! Silakan hubungi petugas.";
+            $this->status = "error";
+            $this->searchRfid = '';
+            $this->dispatch('play-sound', status: 'error');
+            $this->dispatch('message-updated');
+            return;
+        }
+
+        $today = Carbon::today();
+        $now = Carbon::now();
+        $activeSchedule = Schedule::where('is_active', true)->first();
+
+        // Gunakan jadwal dari DB, jika tidak ada jadwal aktif, gunakan default jam 12:00
+        $startTime = $activeSchedule ? $activeSchedule->start_time : '06:45:00';
+        $endTime = $activeSchedule ? $activeSchedule->end_time : '14:00:00';
+
+        // 2. Cek apakah sudah ada data absen hari ini
+        $attendance = Attendance::where('user_id', $user->id)
+            ->where('date', $today)
+            ->first();
+
+        // Hitung limit terlambat (misal: start_time + 15 menit)
+        $limitTime = Carbon::parse($startTime)->addMinutes(15)->toTimeString();
+
+        if (!$attendance) {
+            // LOGIKA TAP IN (MASUK)
+            $attendanceStatus = 'hadir';
+
+            if ($now->toTimeString() > $limitTime) {
+                $attendanceStatus = 'terlambat';
+            }
+
+            // Simpan ke database
+            $newAttendance = Attendance::create([
+                'user_id' => $user->id,
+                'date' => $today,
+                'time_in' => $now->toTimeString(),
+                'status' => $attendanceStatus,
+            ]);
+
+            // Eager load untuk menampilkan nama & kelas di UI
+            $this->lastTap = Attendance::with(['student.class'])->find($newAttendance->id);
+            $this->message = "Selamat Datang, " . $user->name;
+            $this->status = "success";
+
+        } else {
+            // LOGIKA TAP OUT (PULANG)
+            if ($now->toTimeString() < $endTime) {
+                $this->lastTap = $attendance;
+                $this->message = "Belum jam pulang (Jam pulang: " . substr($endTime, 0, 5) . "), " . $user->name . "!";
+                $this->status = "error"; // Ganti ke error agar warna UI jadi merah/warning
+            } else {
+                $attendance->update([
+                    'time_out' => $now->toTimeString(),
+                ]);
+                $this->lastTap = $attendance;
+                $this->message = "Hati-hati di jalan, " . $user->name;
+                $this->status = "success";
+            }
+        }
+
+        // Reset input field untuk scan berikutnya
+        $this->searchRfid = '';
+        $this->dispatch('play-sound', status: $this->status);
+        $this->dispatch('message-updated');
+    }
+
+    public function render()
+    {
+        $recentTaps = Attendance::with(['student.class'])
+            ->where('date', Carbon::today())
+            ->latest('updated_at')
+            ->take(10)
+            ->get();
+
+        return view('livewire.attendance-gateway', [
+            'recentTaps' => $recentTaps
+        ])->layout('layouts.kios');
+    }
+}

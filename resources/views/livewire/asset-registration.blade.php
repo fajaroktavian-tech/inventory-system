@@ -63,14 +63,16 @@
                     <flux:menu.item wire:click="exportPdf" icon="document-text">PDF (.pdf)</flux:menu.item>
                 </flux:menu>
             </flux:dropdown>
-        
+
             <flux:button variant="filled" icon="printer" x-on:click="$dispatch('trigger-print-all')">
-                Cetak Label (A4)
+                Cetak Label
             </flux:button>
 
-            <flux:button variant="primary" icon="plus" wire:click="create">
-                Registrasi Barang
-            </flux:button>
+            <div class="flex gap-2">
+                <flux:button icon="question-mark-circle" wire:click="$set('isAssetGuideOpen', true)" variant="filled">
+                    Panduan</flux:button>
+                <flux:button variant="primary" icon="plus" wire:click="create">Input Aset</flux:button>
+            </div>
         </div>
     </div>
 
@@ -92,11 +94,11 @@
             @foreach($assets as $asset)
                 <flux:table.row :key="$asset->id">
                     <!-- <flux:table.cell>
-                                                                                        <div
-                                                                                            class="bg-white p-1 inline-block rounded border shadow-sm cursor-pointer hover:scale-110 transition-transform">
-                                                                                            {!! $asset->getQrCode() !!}
-                                                                                        </div>
-                                                                                    </flux:table.cell> -->
+                                                                                            <div
+                                                                                                class="bg-white p-1 inline-block rounded border shadow-sm cursor-pointer hover:scale-110 transition-transform">
+                                                                                                {!! $asset->getQrCode() !!}
+                                                                                            </div>
+                                                                                        </flux:table.cell> -->
                     <flux:table.cell>
                         <p class="font-medium">{{ $asset->itemInfo->name }}</p>
                         <p class="text-xs text-zinc-500 italic">SN: {{ $asset->serial_number ?? 'N/A' }}</p>

@@ -141,7 +141,7 @@
 
         <div class="mt-8">
             <flux:heading class="mb-4" icon="clock">Status Permintaan Terakhir Anda</flux:heading>
-            @livewire('student-request-status')
+            @livewire('sarpras.student-request-status')
         </div>
     @endif
 </div>

@@ -16,6 +16,7 @@ class RoomManagement extends Component
     public $totalValue = 0;
     public $isModalOpen = false;
     public $assetsData = [];
+    public $isRoomGuideOpen = false;
 
     public function render()
     {

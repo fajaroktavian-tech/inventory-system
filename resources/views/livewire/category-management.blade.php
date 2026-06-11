@@ -4,7 +4,12 @@
 
     <div class="flex justify-between mt-8 mb-4">
         <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="Cari kategori..." class="max-w-xs" />
-        <flux:button variant="primary" icon="plus" wire:click="create">Tambah Kategori</flux:button>
+        <div class="flex gap-2">
+            <flux:button icon="question-mark-circle" wire:click="$set('isCategoryGuideOpen', true)" variant="ghost">
+                Panduan
+            </flux:button>
+            <flux:button variant="primary" icon="plus" wire:click="create">Tambah Kategori</flux:button>
+        </div>
     </div>
 
     @if (session()->has('message'))
@@ -68,5 +73,5 @@
             </div>
         </form>
     </flux:modal>
-    
+
 </div>

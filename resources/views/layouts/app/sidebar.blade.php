@@ -3,6 +3,8 @@
 
 <head>
     @include('partials.head')
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">
@@ -25,10 +27,6 @@
                     <flux:sidebar.item icon="arrows-right-left" :href="route('request.approval')"
                         :current="request()->routeIs(['request.approval', 'asset-loans.index'])" wire:navigate>
                         Sirkulasi
-                        @php $count = \App\Models\RequestModel::where('status', 'pending')->count(); @endphp
-                        @if($count > 0)
-                            <flux:badge color="red" size="sm" class="ml-auto" inset="right">{{ $count }}</flux:badge>
-                        @endif
                     </flux:sidebar.item>
                 @endif
 
@@ -72,6 +70,29 @@
                     </flux:sidebar.group>
                 @endif
             @endif
+
+            {{-- MODUL ABSENSI (Terbuka untuk Admin, Kesiswaan, Walikelas, Piket) --}}
+            @if(in_array(auth()->user()->role, ['admin', 'kesiswaan', 'walikelas', 'piket']))
+                <flux:sidebar.group :heading="__('Absensi')" class="grid mt-4">
+                    {{-- Navigasi Landing Page Dinamis Menghindari Akses 403 --}}
+                    @php
+                        $attendanceRoute = 'attendance.monitor';
+                        if (auth()->user()->role === 'walikelas')
+                            $attendanceRoute = 'attendance.class';
+                        if (auth()->user()->role === 'piket')
+                            $attendanceRoute = 'attendance.piket';
+                    @endphp
+
+                    <flux:sidebar.item icon="finger-print" :href="route($attendanceRoute)"
+                        :current="request()->routeIs(['attendance.*'])" wire:navigate>
+                        Manajemen Absensi
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="computer-desktop" :href="route('attendance.gateway')" target="_blank">
+                        Buka Kios Absen
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+            @endif
         </flux:sidebar.nav>
 
         <flux:spacer />
@@ -91,20 +112,26 @@
                     </div>
                     <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>Settings</flux:menu.item>
                     <form method="POST" action="{{ route('logout') }}">
-                        <@csrf<flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle">Log out
-                            </flux:menu.item>
+                        @csrf
+                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle">Log out
+                        </flux:menu.item>
                     </form>
                 </flux:menu>
             </flux:dropdown>
         </flux:navbar>
 
-        @if(request()->routeIs(['dashboard', 'dashboard-asset']))
+        @if(request()->routeIs(['dashboard.absen','dashboard', 'dashboard-asset']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
-            <flux:navbar.item icon="archive-box" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
+                <flux:navbar.item icon="chart-bar" :href="route('dashboard.absen')"
+                    :current="request()->routeIs('dashboard.absen')" wire:navigate>
+                    Dashboard Absensi
+                </flux:navbar.item>
+
+                <flux:navbar.item icon="archive-box" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
                     wire:navigate>
                     Dashboard BHP
                 </flux:navbar.item>
-            <flux:navbar.item icon="rectangle-stack" :href="route('dashboard-asset')"
+                <flux:navbar.item icon="rectangle-stack" :href="route('dashboard-asset')"
                     :current="request()->routeIs('dashboard-asset')" wire:navigate>
                     Dashboard Aset
                 </flux:navbar.item>
@@ -141,7 +168,7 @@
         @endif
 
         {{-- SUB-NAVBAR: DATA MASTER --}}
-        @if(request()->routeIs(['users.*', 'students.*', 'staff.*', 'classes.*', 'prodis.*']))
+        @if(request()->routeIs(['users.*', 'students.*', 'staff.*', 'classes.*', 'prodis.*', 'schedules.*']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
                 <flux:navbar.item icon="users" :href="route('users.index')" :current="request()->routeIs('users.index')"
                     wire:navigate>User Login</flux:navbar.item>
@@ -153,6 +180,10 @@
                     :current="request()->routeIs('classes.index')" wire:navigate>Kelas</flux:navbar.item>
                 <flux:navbar.item icon="briefcase" :href="route('prodis.index')"
                     :current="request()->routeIs('prodis.index')" wire:navigate>Prodi</flux:navbar.item>
+                <flux:navbar.item icon="calendar-days" :href="route('schedules.index')"
+                    :current="request()->routeIs('schedules.w*')" wire:navigate>
+                    Jadwal Sekolah
+                </flux:navbar.item>
             </flux:navbar>
         @endif
 
@@ -160,9 +191,48 @@
         @if(request()->routeIs(['request.approval', 'asset-loans.index']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
                 <flux:navbar.item icon="check-badge" :href="route('request.approval')"
-                    :current="request()->routeIs('request.approval')" wire:navigate>Persetujuan BHP</flux:navbar.item>
+                    :current="request()->routeIs('request.approval')" wire:navigate>Persetujuan BHP
+
+                    @php $count = \App\Models\RequestModel::where('status', 'pending')->count(); @endphp
+                    @if($count > 0)
+                        <flux:badge color="red" size="sm" class="ml-auto" inset="right">{{ $count }}</flux:badge>
+                    @endif
+                </flux:navbar.item>
                 <flux:navbar.item icon="rectangle-stack" :href="route('asset-loans.index')"
                     :current="request()->routeIs('asset-loans.index')" wire:navigate>Peminjaman Aset</flux:navbar.item>
+            </flux:navbar>
+        @endif
+
+        {{-- SUB-NAVBAR: ABSENSI (SEKARANG SUDAH DI SINI) --}}
+        @if(request()->routeIs(['attendance.*']))
+            <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
+                {{-- Akses Kesiswaan & Admin --}}
+                @if(in_array(auth()->user()->role, ['admin', 'kesiswaan']))
+                    <flux:navbar.item icon="chart-bar" :href="route('attendance.monitor')"
+                        :current="request()->routeIs('attendance.monitor')" wire:navigate>
+                        Monitoring Real-time
+                    </flux:navbar.item>
+                    <flux:navbar.item icon="document-text" :href="route('attendance.report')"
+                        :current="request()->routeIs('attendance.report')" wire:navigate>
+                        Rekap Absensi
+                    </flux:navbar.item>
+                @endif
+
+                {{-- Akses Wali Kelas --}}
+                @if(auth()->user()->role === 'walikelas' || auth()->user()->role === 'admin')
+                    <flux:navbar.item icon="users" :href="route('attendance.class')"
+                        :current="request()->routeIs('attendance.class')" wire:navigate>
+                        Absensi Kelas
+                    </flux:navbar.item>
+                @endif
+
+                {{-- Akses Petugas Piket --}}
+                @if(auth()->user()->role === 'piket' || auth()->user()->role === 'admin')
+                    <flux:navbar.item icon="pencil-square" :href="route('attendance.piket')"
+                        :current="request()->routeIs('attendance.piket')" wire:navigate>
+                        Input Manual/Piket
+                    </flux:navbar.item>
+                @endif
             </flux:navbar>
         @endif
     </flux:header>

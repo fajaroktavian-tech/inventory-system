@@ -5,7 +5,11 @@
     <div class="flex justify-between mt-8 mb-4">
         <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="Cari nama atau merk..."
             class="max-w-xs" />
-        <flux:button variant="primary" icon="plus" wire:click="create">Tambah Katalog</flux:button>
+        <div class="flex gap-2">
+            <flux:button icon="question-mark-circle" wire:click="$set('isCatalogGuideOpen', true)" variant="ghost">
+                Panduan</flux:button>
+            <flux:button variant="primary" icon="plus" wire:click="create">Tambah Katalog</flux:button>
+        </div>
     </div>
 
     @if (session()->has('message'))
@@ -105,5 +109,44 @@
                 <flux:button type="submit" variant="primary">Simpan Katalog</flux:button>
             </div>
         </form>
+    </flux:modal>
+
+    <flux:modal wire:model="isCatalogGuideOpen" class="md:w-[600px]">
+        <div class="space-y-6">
+            <flux:heading size="lg">Panduan Master Katalog Aset</flux:heading>
+
+            <div class="space-y-4 text-sm text-zinc-600 dark:text-zinc-300">
+                <p>Halaman ini digunakan untuk mendefinisikan <strong>template/tipe barang</strong>. Katalog bukan
+                    merupakan barang fisik, melainkan informasi dasar untuk mempermudah pendaftaran aset unit di
+                    kemudian hari.</p>
+
+                <ul class="list-decimal list-inside space-y-2">
+                    <li><strong>Konsep Katalog:</strong> Katalog berfungsi sebagai "cetakan" (misal: "Laptop ASUS
+                        Expertbook"). Saat mendaftarkan 10 laptop fisik yang sama, Anda cukup memilih dari katalog ini.
+                    </li>
+                    <li><strong>Kategori:</strong> Gunakan kategori yang sudah ada. Jika kategori yang Anda cari tidak
+                        tersedia, pastikan Anda sudah menambahkannya di menu Kategori.</li>
+                    <li><strong>Spesifikasi Umum:</strong> Isi dengan detail standar pabrik (misal: Prosesor, RAM, atau
+                        Material barang). Ini akan menjadi acuan data untuk semua unit yang terdaftar dengan katalog
+                        ini.</li>
+                    <li><strong>Keuntungan:</strong> Dengan katalog yang rapi, Anda tidak perlu mengetik ulang
+                        spesifikasi yang sama berulang kali saat melakukan pendaftaran aset fisik (registrasi unit).
+                    </li>
+                </ul>
+
+                <div class="p-4 bg-sky-50 dark:bg-sky-900/20 rounded-lg border border-sky-100 dark:border-sky-800">
+                    <flux:heading size="sm" class="text-sky-800 dark:text-sky-300">Hubungan Katalog & Unit:
+                    </flux:heading>
+                    <p class="mt-1 text-xs">Katalog adalah <strong>definisi barang</strong>, sedangkan menu
+                        <strong>Registrasi Unit</strong> adalah tempat di mana Anda memasukkan nomor seri (SN) dan
+                        status barang fisik yang sebenarnya.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <flux:button variant="primary" wire:click="$set('isCatalogGuideOpen', false)">Mengerti</flux:button>
+            </div>
+        </div>
     </flux:modal>
 </div>

@@ -1,58 +1,37 @@
-<x-layouts::auth :title="__('Log in')">
-    <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | SIS7BE</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="h-full antialiased">
 
-        <!-- Session Status -->
-        <x-auth-session-status class="text-center" :status="session('status')" />
-
-        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
-            @csrf
-
-            <!-- Email Address -->
-            <flux:input
-                name="email"
-                :label="__('Email address')"
-                :value="old('email')"
-                type="text"
-                required
-                autofocus
-                placeholder="username or email@example.com"
-            />
-
-            <!-- Password -->
-            <div class="relative">
-                <flux:input
-                    name="password"
-                    :label="__('Password')"
-                    type="password"
-                    required
-                    autocomplete="current-password"
-                    :placeholder="__('Password')"
-                    viewable
-                />
-
-                @if (Route::has('password.request'))
-                    <flux:link class="absolute top-0 text-sm end-0" :href="route('password.request')" wire:navigate>
-                        {{ __('Forgot your password?') }}
-                    </flux:link>
-                @endif
+<div class="flex min-h-screen">
+    <div class="flex-1 flex justify-center items-center p-8 bg-white">
+        <div class="w-full max-w-sm space-y-6">
+            <div class="text-center">
+                <h1 class="text-2xl font-black text-red-600">SIS7BE</h1>
+                <flux:heading size="xl" class="mt-2">Log in</flux:heading>
             </div>
-
-            <!-- Remember Me -->
-            <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
-
-            <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
-                    {{ __('Log in') }}
-                </flux:button>
-            </div>
-        </form>
-
-        @if (Route::has('register'))
-            <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
-                <span>{{ __('Don\'t have an account?') }}</span>
-                <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
-            </div>
-        @endif
+            
+            <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
+                @csrf
+                <flux:input name="email" label="Email" type="text" required autofocus placeholder="username atau email@example.com" />
+                <flux:input name="password" label="Password" type="password" placeholder="Password" required viewable />
+                <flux:button variant="primary" type="submit" class="w-full">Log in</flux:button>
+            </form>
+        </div>
     </div>
-</x-layouts::auth>
+
+    <div class="hidden lg:flex flex-1 relative overflow-hidden">
+        <img src="{{ asset('images/utama.jpg') }}" class="absolute inset-0 w-full h-full object-cover" alt="Login Background">
+        
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+        
+    </div>
+</div>
+
+</body>
+</html>

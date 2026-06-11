@@ -79,6 +79,30 @@ class User extends Authenticatable
     }
     public function scopeStaffOnly($query)
     {
-        return $query->whereIn('role', ['guru', 'staff', 'admin']);
+        return $query->whereIn('role', ['guru', 'staff', 'admin', 'kesiswaan', 'piket', 'walikelas']);
+    }
+    public function isKesiswaan(): bool
+    {
+        return $this->role === 'kesiswaan';
+    }
+
+    public function isWalikelas(): bool
+    {
+        return $this->role === 'walikelas';
+    }
+
+    public function isPiket(): bool
+    {
+        return $this->role === 'piket';
+    }
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    // Helper untuk mendapatkan absen hari ini
+    public function attendanceToday()
+    {
+        return $this->hasOne(Attendance::class)->where('date', now()->toDateString());
     }
 }

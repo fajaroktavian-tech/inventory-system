@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ClassModel extends Model
 {
-    protected $fillable = ['name','prodi_id'];
+    protected $fillable = ['name', 'prodi_id'];
 
     public function users(): HasMany
     {
@@ -19,4 +19,10 @@ class ClassModel extends Model
     {
         return $this->belongsTo(Prodi::class, 'prodi_id');
     }
+    // Tambahkan relasi untuk mendapatkan Wali Kelas
+    public function waliKelas()
+    {
+        return $this->hasOne(User::class, 'class_id')->where('role', 'walikelas');
+    }
+    
 }

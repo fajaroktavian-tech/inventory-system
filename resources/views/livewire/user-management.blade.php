@@ -1,6 +1,6 @@
 <div class="p-6">
     <flux:heading size="xl" level="1">Kelola Pengguna</flux:heading>
-    <flux:subheading>Manajemen data admin, petugas, dan owner sistem.</flux:subheading>
+    <flux:subheading>Manajemen data staf, guru, dan administrator sistem.</flux:subheading>
 
     <div class="flex justify-between mt-8 mb-4">
         <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="Cari user..." class="max-w-xs" />
@@ -18,29 +18,49 @@
             <flux:table.column>Nama</flux:table.column>
             <flux:table.column>Username</flux:table.column>
             <flux:table.column>Role</flux:table.column>
+            <flux:table.column>Status</flux:table.column>
             <flux:table.column>Aksi</flux:table.column>
         </flux:table.columns>
 
         <flux:table.rows>
             @foreach($users as $user)
                 <flux:table.row :key="$user->id">
-                    <flux:table.cell>{{ $user->name }}</flux:table.cell>
-                    <flux:table.cell>{{ $user->username }}</flux:table.cell>
                     <flux:table.cell>
-                        {{-- Gunakan badge tanpa atribut tambahan --}}
-                        <flux:badge>{{ strtoupper($user->role) }}</flux:badge>
+                        <div class="font-medium">{{ $user->name }}</div>
+                        <div class="text-xs text-zinc-500">{{ $user->email ?? '-' }}</div>
+                    </flux:table.cell>
+                    <flux:table.cell class="font-mono text-xs">{{ $user->username }}</flux:table.cell>
+                    <flux:table.cell>
+                        @php
+                            // Logika warna badge berdasarkan role
+                            $color = match($user->role) {
+                                'admin' => 'red',
+                                'kesiswaan' => 'purple',
+                                'walikelas' => 'blue',
+                                'piket' => 'orange',
+                                'petugas' => 'emerald',
+                                'guru', 'staff' => 'zinc',
+                                'siswa' => 'cyan',
+                                default => 'zinc'
+                            };
+                        @endphp
+                        <flux:badge :color="$color" size="sm" inset="top bottom">
+                            {{ strtoupper($user->role) }}
+                        </flux:badge>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <flux:badge size="sm" :color="$user->is_active ? 'green' : 'red'" variant="pill">
+                            {{ $user->is_active ? 'Aktif' : 'Nonaktif' }}
+                        </flux:badge>
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex gap-2">
-                            <flux:button variant="primary" color="yellow" size="sm" wire:click="edit({{ $user->id }})">
-                                Edit
-                            </flux:button>
-
+                            <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="edit({{ $user->id }})" />
+                            
                             @if($user->id !== auth()->id())
-                                <flux:button variant="danger" size="sm" wire:click="delete({{ $user->id }})"
-                                    wire:confirm="Hapus?">
-                                    Hapus
-                                </flux:button>
+                                <flux:button variant="ghost" size="sm" icon="trash" color="red" 
+                                    wire:click="delete({{ $user->id }})"
+                                    wire:confirm="Apakah Anda yakin ingin menghapus user ini?" />
                             @endif
                         </div>
                     </flux:table.cell>
@@ -54,41 +74,61 @@
     </div>
 
     {{-- MODAL FORM --}}
-    <flux:modal wire:model="isModalOpen" class="md:w-[400px]">
+    <flux:modal wire:model="isModalOpen" class="md:w-[500px]">
         <div class="space-y-6">
-            <div>
-                <flux:heading size="lg">{{ $userId ? 'Edit User' : 'Tambah User' }}</flux:heading>
-            </div>
+            <flux:heading size="lg">{{ $userId ? 'Edit Pengguna' : 'Tambah Pengguna Baru' }}</flux:heading>
 
-            <form wire:submit="store" class="space-y-4">
-                <flux:input label="Nama Lengkap" wire:model="name" />
+            <form wire:submit="store" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <flux:input label="Nama Lengkap" wire:model="name" placeholder="Contoh: Budi Santoso, S.Pd" />
+                </div>
+                
                 <flux:input label="Username" wire:model="username" />
-                <flux:input label="Email (Opsional)" wire:model="email" />
+                <flux:input label="Email (Opsional)" wire:model="email" type="email" />
 
-                <flux:select label="Role" wire:model="role">
-                    <option value="admin">Admin</option>
-                    <option value="petugas">Petugas Gudang</option>
-                    <option value="owner">Owner</option>
-                    <option value="guru">Guru</option>
-                    <option value="staff">Staff</option>
-                    <option value="siswa">Siswa</option>
+                <flux:select label="Role / Hak Akses" wire:model.live="role">
+                    <option value="">-- Pilih Role --</option>
+                    <optgroup label="Administrator">
+                        <option value="admin">Administrator (Full)</option>
+                        <option value="kesiswaan">Bagian Kesiswaan</option>
+                    </optgroup>
+                    <optgroup label="Tenaga Pendidik">
+                        <option value="walikelas">Wali Kelas</option>
+                        <option value="piket">Guru Piket</option>
+                        <option value="guru">Guru Mapel</option>
+                    </optgroup>
+                    <optgroup label="Staf & Lainnya">
+                        <option value="petugas">Petugas Gudang/Aset</option>
+                        <option value="staff">Staf Tata Usaha</option>
+                        <option value="owner">Yayasan/Owner</option>
+                        <option value="siswa">Siswa</option>
+                    </optgroup>
                 </flux:select>
 
                 <flux:input label="Password" type="password" wire:model="password"
-                    :placeholder="$userId ? 'Kosongkan jika tidak diubah' : ''" />
+                    :placeholder="$userId ? 'Kosongkan jika tidak diganti' : 'Minimal 8 karakter'" />
 
-                <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                    <flux:input label="RFID UID (Tap kartu sekarang)" wire:model="rfid_uid" autofocus />
-                    <p class="text-[10px] mt-1 text-blue-600 font-medium">* Letakkan kursor di sini lalu tap kartu pada
-                        reader</p>
+                {{-- Jika Role adalah Wali Kelas, tampilkan pilihan kelas (Opsional jika ada properti class_id di component) --}}
+                @if($role === 'walikelas' || $role === 'siswa')
+                <div class="md:col-span-2">
+                    <flux:select label="Penempatan Kelas" wire:model="class_id">
+                        <option value="">-- Pilih Kelas --</option>
+                        @foreach(\App\Models\ClassModel::all() as $cls)
+                            <option value="{{ $cls->id }}">{{ $cls->name }}</option>
+                        @endforeach
+                    </flux:select>
+                </div>
+                @endif
+
+                <div class="md:col-span-2 p-4 bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl">
+                    <flux:input label="RFID UID" wire:model="rfid_uid" placeholder="Tap kartu pada reader..." />
+                    <flux:text size="xs" class="mt-2 text-zinc-500">Gunakan RFID untuk login cepat di Kios Gateway atau absen Staf.</flux:text>
                 </div>
 
-
-                <div class="flex mt-6">
+                <div class="md:col-span-2 flex mt-4">
                     <flux:spacer />
-                    <flux:button variant="ghost" wire:click="$set('isModalOpen', false)" class="mr-2">Batal
-                    </flux:button>
-                    <flux:button type="submit" variant="primary">Simpan</flux:button>
+                    <flux:button variant="ghost" wire:click="$set('isModalOpen', false)" class="mr-2">Batal</flux:button>
+                    <flux:button type="submit" variant="primary">Simpan Data</flux:button>
                 </div>
             </form>
         </div>

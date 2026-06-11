@@ -9,9 +9,22 @@
         </div>
 
         <div class="flex items-end gap-2">
-            <flux:button variant="outline" icon="document-text" wire:click="exportExcel" size="sm">Excel</flux:button>
-            <flux:button variant="outline" icon="printer" wire:click="exportPDF" size="sm">PDF</flux:button>
-            <flux:button variant="primary" icon="plus" wire:click="create" size="sm">Input Barang Masuk</flux:button>
+        <flux:button icon="question-mark-circle" wire:click="$set('isIncomingGuideOpen', true)" variant="ghost" size="sm">Panduan</flux:button>
+            <flux:dropdown align="end">
+                <flux:button icon-trailing="chevron-down" variant="outline" size="sm">
+                    Export Data
+                </flux:button>
+
+                <flux:menu>
+                    <flux:menu.item icon="document-text" wire:click="exportExcel">
+                        Export ke Excel
+                    </flux:menu.item>
+                    <flux:menu.item icon="printer" wire:click="exportPDF">
+                        Export ke PDF
+                    </flux:menu.item>
+                </flux:menu>
+            </flux:dropdown>
+            <flux:button variant="primary" icon="plus" wire:click="create" size="sm">Barang Masuk</flux:button>
         </div>
     </div>
 
@@ -96,5 +109,42 @@
                 <flux:button type="submit" variant="primary">Simpan Stok</flux:button>
             </div>
         </form>
+    </flux:modal>
+
+    <flux:modal wire:model="isIncomingGuideOpen" class="md:w-[600px]">
+        <div class="space-y-6">
+            <flux:heading size="lg">Panduan Input Barang Masuk</flux:heading>
+
+            <div class="space-y-4 text-sm text-zinc-600 dark:text-zinc-300">
+                <p>Menu ini digunakan untuk mencatat penambahan stok barang ke gudang sekolah. Pastikan setiap barang
+                    masuk tercatat agar stok tetap akurat.</p>
+
+                <ul class="list-decimal list-inside space-y-2">
+                    <li><strong>Tanggal:</strong> Sesuaikan dengan tanggal fisik barang diterima di sekolah, bukan
+                        tanggal saat input ke sistem.</li>
+                    <li><strong>Cari Barang:</strong> Ketik nama barang pada kolom pencarian dan klik barang yang sesuai
+                        dari daftar yang muncul.</li>
+                    <li><strong>Verifikasi Stok:</strong> Perhatikan stok saat ini yang muncul di samping nama barang
+                        saat mencari untuk memastikan Anda memilih barang yang benar.</li>
+                    <li><strong>Jumlah:</strong> Masukkan jumlah barang yang diterima sesuai dengan nota pengiriman atau
+                        surat jalan.</li>
+                    <li><strong>Keterangan:</strong> Sangat disarankan mengisi keterangan (misal: "Pengadaan BOS 2026",
+                        "Hibah", atau "Sisa Proyek") untuk memudahkan pelacakan di laporan akhir tahun.</li>
+                </ul>
+
+                <div
+                    class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
+                    <flux:heading size="sm" class="text-green-800 dark:text-green-300">Mengapa Harus Tercatat?
+                    </flux:heading>
+                    <p class="mt-1 text-xs">Setiap input di sini akan secara otomatis memperbarui jumlah stok di
+                        <strong>Kelola Data Barang</strong>. Kesalahan input akan berdampak pada selisih aset sekolah.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <flux:button variant="primary" wire:click="$set('isIncomingGuideOpen', false)">Mengerti</flux:button>
+            </div>
+        </div>
     </flux:modal>
 </div>

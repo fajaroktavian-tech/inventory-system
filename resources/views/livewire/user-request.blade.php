@@ -144,7 +144,7 @@
     <div x-show="tab === 'status'" x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0 transform scale-95">
         <div class="bg-white rounded-[2rem] border border-zinc-200 shadow-sm overflow-hidden">
-            @livewire('student-request-status')
+            @livewire('sarpras.student-request-status')
         </div>
     </div>
 

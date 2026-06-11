@@ -9,6 +9,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
+use Livewire\Livewire;
+use App\Livewire\Sarpras\StockViewer;
 
 class AppServiceProvider extends ServiceProvider
 {

@@ -13,7 +13,7 @@ class UserManagement extends Component
     use WithPagination;
 
     public $search = '';
-    public $userId, $name, $username, $email, $role, $password,$rfid_uid;
+    public $userId, $name, $username, $email, $role, $password,$rfid_uid,$class_id;
     public $isModalOpen = false;
 
     public function mount()
@@ -36,7 +36,7 @@ class UserManagement extends Component
     public function create()
     {
         $this->reset(['name', 'username', 'email', 'role', 'password', 'userId', 'rfid_uid']);
-        $this->role = 'petugas';
+        $this->role = 'guru'; // Set default role
         $this->isModalOpen = true;
     }
 
@@ -49,6 +49,7 @@ class UserManagement extends Component
         $this->email = $user->email;
         $this->role = $user->role;
         $this->rfid_uid = $user->rfid_uid;
+        $this->class_id = $user->class_id;
         $this->isModalOpen = true;
     }
 
@@ -58,8 +59,9 @@ class UserManagement extends Component
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,'.$this->userId,
             'email' => 'nullable|email|unique:users,email,'.$this->userId,
-            'role' => 'required|in:admin,petugas,owner,guru,staff,siswa',
+            'role' => 'required|in:admin,petugas,owner,guru,staff,siswa,kesiswaan,walikelas,piket',
             'password' => $this->userId ? 'nullable|min:6' : 'required|min:6',
+            'class_id' => 'nullable|exists:class_models,id',
         ]);
 
         User::updateOrCreate(['id' => $this->userId], [
@@ -69,6 +71,7 @@ class UserManagement extends Component
             'role' => $this->role,
             'rfid_uid'=>$this->rfid_uid,
             'password' => $this->password ? Hash::make($this->password) : User::find($this->userId)->password,
+            'class_id' => in_array($this->role, ['walikelas', 'siswa']) ? $this->class_id : null,
         ]);
 
         $this->isModalOpen = false;
