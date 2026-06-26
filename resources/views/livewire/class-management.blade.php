@@ -123,17 +123,17 @@
             </div>
 
             <div class="space-y-2">
-            <flux:label>Pilih Kelas</flux:label>
-            <flux:input wire:model.live="searchKelas" placeholder="Ketik untuk cari kelas..." />
-            
-            <flux:select wire:model="class_id" placeholder="Pilih Kelas...">
-                @foreach($classes as $class)
-                    <flux:select.option value="{{ $class->id }}">
-                        {{ $class->name }}
-                    </flux:select.option>
-                @endforeach
-            </flux:select>
-        </div>
+                <flux:label>Pilih Kelas</flux:label>
+                <flux:input wire:model.live="searchKelas" placeholder="Ketik untuk cari kelas..." />
+
+                <flux:select wire:model="targetClassId" placeholder="Pilih Kelas Tujuan...">
+                    @foreach($classes as $class)
+                        <flux:select.option value="{{ $class->id }}">
+                            {{ $class->name }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
 
             <div class="flex mt-6 gap-2">
                 <flux:spacer />
