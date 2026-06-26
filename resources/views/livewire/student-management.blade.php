@@ -1,5 +1,19 @@
 <div class="p-6">
     <flux:heading size="xl">Data Siswa (Master)</flux:heading>
+    <div class="flex items-center gap-4 bg-zinc-50 p-4 rounded-lg border">
+    <input type="file" wire:model="import_file" class="block text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+    
+    <flux:button wire:click="import" icon="arrow-up-tray" variant="primary">
+        <span wire:loading.remove wire:target="import">Import Excel</span>
+        <span wire:loading wire:target="import">Memproses...</span>
+    </flux:button>
+
+    @error('import_file') 
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p> 
+    @enderror
+    
+    <a href="/template/template_siswa.xlsx" class="text-sm text-blue-600 underline">Download Template</a>
+</div>
 
     <div class="flex justify-between mt-8 mb-4">
         <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="Cari nama, NIS, atau UID..."
@@ -10,6 +24,10 @@
     @if (session()->has('message'))
         <div class="p-3 mb-4 text-sm text-white bg-green-500 rounded-lg">{{ session('message') }}</div>
     @endif
+    
+@if (session()->has('error'))
+    <div class="p-3 mb-4 text-sm text-white bg-red-500 rounded-lg">{{ session('error') }}</div>
+@endif
 
     <flux:table>
         <flux:table.columns>

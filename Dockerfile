@@ -21,4 +21,3 @@ RUN npm install && npm run build
 # 5. Set Permissions untuk Laravel
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-# Kita tidak lagi pakai CMD php artisan serve

@@ -9,11 +9,14 @@ use Livewire\WithPagination;
 use Illuminate\Support\Facades\Hash;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use App\Imports\StudentsImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StudentManagement extends Component
 {
     use WithPagination;
     use WithFileUploads;
+    public $import_file;
 
     public $search = '';
     public $studentId, $name, $username, $rfid_uid, $class_id; // class_id ditambahkan
@@ -40,8 +43,8 @@ class StudentManagement extends Component
                 )
                 ->latest()->paginate(10),
             'classes' => ClassModel::with('prodi')
-            ->orderBy('name', 'asc') 
-            ->get()
+                ->orderBy('name', 'asc')
+                ->get()
         ])->layout('layouts.app');
     }
 
@@ -127,5 +130,20 @@ class StudentManagement extends Component
         $student->save();
 
         session()->flash('message', 'Status siswa berhasil diperbarui.');
+    }
+
+    public function import()
+    {
+        $this->validate([
+            'import_file' => 'required|file|mimes:xlsx,xls,csv'
+        ]);
+
+        try {
+            Excel::import(new StudentsImport, $this->import_file->getRealPath());
+            $this->reset('import_file');
+            session()->flash('message', 'Data siswa berhasil diimpor!');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Gagal mengimpor data: ' . $e->getMessage());
+        }
     }
 }

@@ -105,14 +105,14 @@
             <flux:table.rows>
                 @forelse($recapData as $row)
                     @php
-                        // $hariEfektif didapat dari variabel yang kita kirim dari render()
+                        // Hitung hari aktif untuk baris ini
+                        $currentHariAktif = $this->getAktifDaysCount($startDate, $endDate);
                         $totalMasuk = $row->total_hadir + $row->total_terlambat + $row->total_izin;
 
-                        // Alpa = Hari Efektif dikurangi total kehadiran/izin
-                        $alpa = max(0, $hariEfektif - $totalMasuk);
+                        // Alpa dihitung berdasarkan jumlah hari aktif
+                        $alpa = max(0, $currentHariAktif - $totalMasuk);
 
-                        // Persentase Kehadiran
-                        $persentase = $hariEfektif > 0 ? round(($totalMasuk / $hariEfektif) * 100) : 0;
+                        $persentase = $currentHariAktif > 0 ? round(($totalMasuk / $currentHariAktif) * 100) : 0;
                     @endphp
                     <flux:table.row :key="$row->id">
                         <flux:table.cell>
@@ -201,38 +201,38 @@
     </flux:modal>
 
     <flux:modal wire:model="isDetailModalOpen" class="md:w-[600px]">
-    @if($selectedStudentDetail)
-        <div class="space-y-4">
-            <flux:heading size="lg">Riwayat Kehadiran: {{ $selectedStudentDetail->name }}</flux:heading>
-            
-            {{-- Tambahkan pembungkus dengan overflow-y-auto dan max-height --}}
-            <div class="overflow-y-auto max-h-[400px] border border-zinc-200 dark:border-zinc-700 rounded-lg">
-                <flux:table>
-                    <flux:table.columns>
-                        <flux:table.column sticky>Tanggal</flux:table.column>
-                        <flux:table.column>Waktu</flux:table.column>
-                        <flux:table.column>Status</flux:table.column>
-                    </flux:table.columns>
-                    <flux:table.rows>
-                        @foreach($selectedStudentDetail->attendances as $att)
-                            <flux:table.row>
-                                <flux:table.cell>{{ $att->created_at->format('d M Y') }}</flux:table.cell>
-                                <flux:table.cell>{{ $att->time_in ?? '-' }}</flux:table.cell>
-                                <flux:table.cell>
-                                    <flux:badge color="{{ $att->status === 'hadir' ? 'green' : 'red' }}">
-                                        {{ strtoupper($att->status) }}
-                                    </flux:badge>
-                                </flux:table.cell>
-                            </flux:table.row>
-                        @endforeach
-                    </flux:table.rows>
-                </flux:table>
-            </div>
+        @if($selectedStudentDetail)
+            <div class="space-y-4">
+                <flux:heading size="lg">Riwayat Kehadiran: {{ $selectedStudentDetail->name }}</flux:heading>
 
-            <div class="flex justify-end pt-2">
-                <flux:button wire:click="$set('isDetailModalOpen', false)">Tutup</flux:button>
+                {{-- Tambahkan pembungkus dengan overflow-y-auto dan max-height --}}
+                <div class="overflow-y-auto max-h-[400px] border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                    <flux:table>
+                        <flux:table.columns>
+                            <flux:table.column sticky>Tanggal</flux:table.column>
+                            <flux:table.column>Waktu</flux:table.column>
+                            <flux:table.column>Status</flux:table.column>
+                        </flux:table.columns>
+                        <flux:table.rows>
+                            @foreach($selectedStudentDetail->attendances as $att)
+                                <flux:table.row>
+                                    <flux:table.cell>{{ $att->created_at->format('d M Y') }}</flux:table.cell>
+                                    <flux:table.cell>{{ $att->time_in ?? '-' }}</flux:table.cell>
+                                    <flux:table.cell>
+                                        <flux:badge color="{{ $att->status === 'hadir' ? 'green' : 'red' }}">
+                                            {{ strtoupper($att->status) }}
+                                        </flux:badge>
+                                    </flux:table.cell>
+                                </flux:table.row>
+                            @endforeach
+                        </flux:table.rows>
+                    </flux:table>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <flux:button wire:click="$set('isDetailModalOpen', false)">Tutup</flux:button>
+                </div>
             </div>
-        </div>
-    @endif
-</flux:modal>
+        @endif
+    </flux:modal>
 </div>
