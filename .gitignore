@@ -23,3 +23,6 @@ yarn-error.log
 /.zed
 .DS_Store
 inventory.sql
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
