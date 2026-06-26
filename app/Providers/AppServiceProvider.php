@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\User;
 use Livewire\Livewire;
 use App\Livewire\Sarpras\StockViewer;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('create-request', function (User $user) {
             return in_array($user->role, ['siswa', 'guru', 'staff']);
         });
+
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
     }
 
     /**
