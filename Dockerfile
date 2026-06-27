@@ -7,6 +7,10 @@ RUN apt-get update && apt-get install -y \
 # 2. Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
 
+# Tambahkan ini untuk konfigurasi PHP upload
+RUN echo "upload_max_filesize = 20M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 20M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 # 3. Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
