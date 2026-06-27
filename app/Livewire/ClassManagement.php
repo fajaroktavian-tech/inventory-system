@@ -13,6 +13,7 @@ class ClassManagement extends Component
     use WithPagination;
 
     public $search = '';
+    public $searchkelas = '';
     public $classId, $name, $prodi_id;
     public $isModalOpen = false;
     public $targetClassId;
