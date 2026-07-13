@@ -7,7 +7,10 @@ use Flux\Flux;
 
 class ScheduleManager extends Component
 {
-    public $name, $start_time, $end_time, $is_active;
+    public $name, $start_time, $end_time, $is_active, $days = [];
+public $daysOptions = [
+    1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat'
+];
     public $editingId = null;
 
     public function save()
@@ -16,7 +19,13 @@ class ScheduleManager extends Component
 
         Schedule::updateOrCreate(
             ['id' => $this->editingId],
-            ['name' => $this->name, 'start_time' => $this->start_time, 'end_time' => $this->end_time, 'is_active' => $this->is_active ?? false]
+            [
+                'name' => $this->name,
+                'days' => json_encode($this->days),
+                'start_time' => $this->start_time,
+                'end_time' => $this->end_time,
+                'is_active' => $this->is_active
+            ]
         );
 
         $this->reset(['name', 'start_time', 'end_time', 'is_active', 'editingId']);

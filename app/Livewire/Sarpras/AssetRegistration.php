@@ -16,6 +16,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class AssetRegistration extends Component
 {
     use WithPagination;
+    public $isAssetGuideOpen = false;
     public $selectedAsset;
     public $filterRoom = '';
     public $filterCondition = '';

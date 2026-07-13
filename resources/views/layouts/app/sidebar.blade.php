@@ -88,9 +88,9 @@
                         Manajemen Absensi
                     </flux:sidebar.item>
 
-                    <flux:sidebar.item icon="computer-desktop" :href="route('attendance.gateway')" target="_blank">
-                        Buka Kios Absen
-                    </flux:sidebar.item>
+                    <!-- <flux:sidebar.item icon="computer-desktop" :href="route('attendance.gateway')" target="_blank">
+                                Buka Kios Absen
+                            </flux:sidebar.item> -->
                 </flux:sidebar.group>
             @endif
         </flux:sidebar.nav>
@@ -120,7 +120,7 @@
             </flux:dropdown>
         </flux:navbar>
 
-        @if(request()->routeIs(['dashboard.absen','dashboard', 'dashboard-asset']))
+        @if(request()->routeIs(['dashboard.absen', 'dashboard', 'dashboard-asset']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
                 <flux:navbar.item icon="chart-bar" :href="route('dashboard.absen')"
                     :current="request()->routeIs('dashboard.absen')" wire:navigate>
@@ -168,7 +168,7 @@
         @endif
 
         {{-- SUB-NAVBAR: DATA MASTER --}}
-        @if(request()->routeIs(['users.*', 'students.*', 'staff.*', 'classes.*', 'prodis.*', 'schedules.*']))
+        @if(request()->routeIs(['users.*', 'students.*', 'staff.*', 'classes.*', 'prodis.*', 'schedules.*', 'holiday.*']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
                 <flux:navbar.item icon="users" :href="route('users.index')" :current="request()->routeIs('users.index')"
                     wire:navigate>User Login</flux:navbar.item>
@@ -183,6 +183,10 @@
                 <flux:navbar.item icon="calendar-days" :href="route('schedules.index')"
                     :current="request()->routeIs('schedules.w*')" wire:navigate>
                     Jadwal Sekolah
+                </flux:navbar.item>
+                <flux:navbar.item icon="calendar-days" :href="route('holiday.index')"
+                    :current="request()->routeIs('holiday.index')" wire:navigate>
+                    Hari Libur
                 </flux:navbar.item>
             </flux:navbar>
         @endif
@@ -223,6 +227,12 @@
                     <flux:navbar.item icon="users" :href="route('attendance.class')"
                         :current="request()->routeIs('attendance.class')" wire:navigate>
                         Absensi Kelas
+                    </flux:navbar.item>
+
+                    {{-- TAMBAHKAN MENU INI --}}
+                    <flux:navbar.item icon="document-chart-bar" :href="route('attendance.recap.class')"
+                        :current="request()->routeIs('attendance.recap.class')" wire:navigate>
+                        Rekap Absensi Kelas
                     </flux:navbar.item>
                 @endif
 

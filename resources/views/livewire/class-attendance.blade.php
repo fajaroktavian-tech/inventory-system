@@ -86,12 +86,11 @@
                         @php 
                             $isWeekend = \Carbon\Carbon::parse($selectedDate)->isWeekend();
                         @endphp
-
-                                           @if($attendance)
-                                            <flux:badge :color="$attendance->status === 'hadir' ? 'green' : ($attendance->status === 'alpa' ? 'red' : 'orange')">
-                                                    {{ strtoupper($attendance->status) }}
-                                            </flux:badge>
-                                        @elseif($isWeekend)
+                        @if($attendance)
+                            <flux:badge :color="$attendance->status === 'hadir' ? 'green' : ($attendance->status === 'alpa' ? 'red' : 'orange')">
+                                {{ strtoupper($attendance->status) }}
+                            </flux:badge>
+                        @elseif($isHoliday)
                             <span class="text-xs text-zinc-400 italic">Libur</span>
                         @else
                             <flux:badge color="red">ALPA</flux:badge>

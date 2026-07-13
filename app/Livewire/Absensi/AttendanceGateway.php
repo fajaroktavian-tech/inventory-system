@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use Carbon\Carbon;
 use Livewire\Component;
 use App\Models\Schedule;
+use App\Models\SchoolCalendar;
 
 class AttendanceGateway extends Component
 {
@@ -31,10 +32,17 @@ class AttendanceGateway extends Component
     {
         // Trim input untuk menghindari spasi atau karakter tak terlihat dari scanner
         $rfidInput = trim($this->searchRfid);
+        $today = Carbon::today();
 
-        if (Carbon::now()->isWeekend()) {
+        // 1. CEK HARI LIBUR DARI DATABASE (Cukup satu kali di sini)
+        $isHoliday = SchoolCalendar::where('date', $today->toDateString())
+            ->where('is_holiday', true)
+            ->exists();
+
+        if ($isHoliday) {
             $this->message = "Hari ini libur. Absensi dinonaktifkan.";
             $this->status = "error";
+            $this->searchRfid = ''; // Penting agar input kosong kembali
             $this->dispatch('message-updated');
             $this->dispatch('play-sound', status: 'error');
             return;
@@ -42,19 +50,17 @@ class AttendanceGateway extends Component
 
         if (empty($rfidInput))
             return;
+
         $this->message = '';
         $this->status = '';
 
-        // 1. Cari User berdasarkan RFID
-        // PASTIKAN: rfid_uid adalah nama kolom yang benar di tabel users Anda
+        // 2. Cari User berdasarkan RFID
         $user = User::where('rfid_uid', $rfidInput)
             ->where('is_active', true)
             ->first();
 
         if (!$user) {
-            // PENTING: Reset lastTap agar foto siswa sebelumnya hilang saat kartu tidak terdaftar di-tap
             $this->lastTap = null;
-
             $this->message = "Kartu Tidak Terdaftar! Silakan hubungi petugas.";
             $this->status = "error";
             $this->searchRfid = '';
@@ -124,14 +130,19 @@ class AttendanceGateway extends Component
 
     public function render()
     {
+        $today = Carbon::today();
+        $isHoliday = SchoolCalendar::where('date', $today->toDateString())
+            ->where('is_holiday', true)
+            ->exists();
         $recentTaps = Attendance::with(['student.class'])
-            ->where('date', Carbon::today())
+            ->where('date', $today)
             ->latest('updated_at')
             ->take(10)
             ->get();
 
         return view('livewire.attendance-gateway', [
-            'recentTaps' => $recentTaps
+            'recentTaps' => $recentTaps,
+            'isHoliday' => $isHoliday // Kirim variabel ini ke view
         ])->layout('layouts.kios');
     }
 }

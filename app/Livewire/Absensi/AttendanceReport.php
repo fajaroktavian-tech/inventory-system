@@ -39,7 +39,7 @@ class AttendanceReport extends Component
     public function render()
     {
         $classes = ClassModel::orderBy('name')->get();
-        $hariEfektif = $this->countWorkDays($this->startDate, $this->endDate);
+        $hariEfektif = $this->getAktifDaysCount($this->startDate, $this->endDate);
 
         // 1. Inisiasi Query Utama
         $baseQuery = User::query()
@@ -138,32 +138,6 @@ class AttendanceReport extends Component
         );
     }
 
-    private function countWorkDays($startDate, $endDate)
-    {
-        // 1. Ambil semua jadwal yang statusnya aktif
-        $activeSchedules = \App\Models\Schedule::where('is_active', true)->get();
-
-        // Jika tidak ada jadwal aktif, kembalikan 0 hari efektif
-        if ($activeSchedules->isEmpty())
-            return 0;
-
-        $start = Carbon::parse($startDate);
-        $end = Carbon::parse($endDate);
-
-        // 2. Hitung hari dalam rentang yang merupakan hari sekolah (Senin-Jumat)
-        // DAN memiliki record di tabel schedule yang is_active = true
-        return $start->diffInDaysFiltered(function (Carbon $date) use ($activeSchedules) {
-            // Cek apakah hari ini Senin-Jumat
-            if (!$date->isWeekday())
-                return false;
-
-            // Cek apakah hari ini cocok dengan nama di tabel schedule
-            // Contoh: jika 'name' adalah "Senin-Jumat", kita perlu logika pencocokan hari
-            // Sederhananya, jika ada jadwal aktif, kita anggap hari tersebut hari efektif
-            return true;
-        }, $end) + ($start->isWeekday() ? 1 : 0);
-    }
-
     public function showStudentDetail($studentId)
     {
         // Ambil data kehadiran siswa berdasarkan range tanggal yang dipilih
@@ -179,15 +153,10 @@ class AttendanceReport extends Component
 
     private function getAktifDaysCount($startDate, $endDate)
     {
-        // Ambil jadwal yang aktif
-        $active = \App\Models\Schedule::where('is_active', true)->exists();
-        if (!$active)
-            return 0;
-
-        // Logika sederhananya: jika ada jadwal aktif, hitung hari kerja (Senin-Jumat)
-        // Jika Anda ingin lebih spesifik (misal: Jumat libur), 
-        // Anda harus mengubah struktur tabel schedules agar per hari.
-        return Carbon::parse($startDate)->diffInDaysFiltered(fn(Carbon $d) => $d->isWeekday(), Carbon::parse($endDate)) + 1;
+        // Menggunakan tabel school_calendars untuk menghitung hari efektif
+        return \App\Models\SchoolCalendar::whereBetween('date', [$startDate, $endDate])
+            ->where('is_holiday', false)
+            ->count();
     }
 
 

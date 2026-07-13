@@ -8,6 +8,7 @@ use Flux\Flux;
 use App\Models\User;
 use App\Models\Schedule;
 use Carbon\Carbon;
+use App\Models\SchoolCalendar;
 
 class PiketEntry extends Component
 {
@@ -18,41 +19,35 @@ class PiketEntry extends Component
 
     public function render()
     {
-        $foundStudents = collect(); // Inisialisasi collection kosong
+        $today = now()->toDateString();
 
-        if (!empty($this->search)) {
-            $foundStudents = User::where('role', 'siswa')
-                ->where(function ($query) {
-                    $query->where('name', 'like', '%' . $this->search . '%')
-                        ->orWhere('nis', 'like', '%' . $this->search . '%');
-                })
-                ->with('class')
-                ->limit(10)
-                ->get();
-        }
+        // Cek apakah hari ini libur
+        $isHoliday = SchoolCalendar::where('date', $today)
+            ->where('is_holiday', true)
+            ->exists();
 
-        $latestAttendances = Attendance::where('verified_by', auth()->id())
-            ->whereDate('date', now()->toDateString())
-            ->with('student') // Pastikan ada relasi student di model Attendance
+        // Jika libur, kita kosongkan data absensi agar tidak membingungkan petugas
+        $latestAttendances = $isHoliday ? collect() : Attendance::where('verified_by', auth()->id())
+            ->whereDate('date', $today)
+            ->with('student')
             ->latest('updated_at')
             ->take(10)
             ->get();
 
-        $attendedIds = Attendance::whereDate('date', now()->toDateString())->pluck('user_id');
-        $absentStudents = User::where('role', 'siswa')
+        $absentStudents = $isHoliday ? collect() : User::where('role', 'siswa')
             ->where('is_active', true)
-            ->whereNotIn('id', $attendedIds)
+            ->whereNotIn('id', Attendance::whereDate('date', $today)->pluck('user_id'))
             ->with('class')
-            ->limit(20) // Batasi agar tidak terlalu panjang
+            ->limit(20)
             ->get();
 
         return view('livewire.piket-entry', [
-            'foundStudents' => $foundStudents,
+            'isHoliday' => $isHoliday, // Kirim status ke view
+            'foundStudents' => ($isHoliday) ? collect() : $this->getFoundStudents(),
             'latestAttendances' => $latestAttendances,
             'absentStudents' => $absentStudents
         ]);
     }
-
     public function markAsPresent($studentId, $status)
     {
         $now = Carbon::now();
@@ -70,6 +65,11 @@ class PiketEntry extends Component
             if ($now->greaterThan($startTime)) {
                 $finalStatus = 'terlambat';
             }
+        }
+
+        if (SchoolCalendar::where('date', now()->toDateString())->where('is_holiday', true)->exists()) {
+            Flux::toast('Tidak bisa input absen di hari libur!', 'danger');
+            return;
         }
 
         // 3. Simpan dengan status yang sudah divalidasi
@@ -103,6 +103,11 @@ class PiketEntry extends Component
             ]
         );
 
+        if (SchoolCalendar::where('date', now()->toDateString())->where('is_holiday', true)->exists()) {
+            Flux::toast('Tidak bisa input absen di hari libur!', 'danger');
+            return;
+        }
+
         $this->isPiketModalOpen = false;
         $this->reset(['search', 'selectedStudentId']);
         Flux::toast('Status absensi berhasil diperbarui.');
@@ -115,5 +120,20 @@ class PiketEntry extends Component
             $attendance->delete();
             Flux::toast('Input berhasil dihapus (Undo).');
         }
+    }
+
+    private function getFoundStudents()
+    {
+        if (empty($this->search))
+            return collect();
+
+        return User::where('role', 'siswa')
+            ->where(function ($query) {
+                $query->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('nis', 'like', '%' . $this->search . '%');
+            })
+            ->with('class')
+            ->limit(10)
+            ->get();
     }
 }

@@ -29,7 +29,7 @@ use App\Livewire\Sarpras\DashboardAsset;
 use App\Livewire\Absensi\AttendanceGateway;
 use App\Livewire\Absensi\AttendanceMonitor;
 use App\Livewire\Absensi\AttendanceReport;
-//use App\Livewire\MyClassAttendance;
+use App\Livewire\ClassAttendanceRecap;
 use App\Livewire\Absensi\PiketEntry;
 use App\Models\Item;
 use App\Models\Room;
@@ -37,6 +37,8 @@ use App\Models\Category;
 use App\Models\RequestModel;
 use App\Livewire\ProdiManagement;
 use App\Http\Controllers\Sarpras\LandingController;
+use App\Http\Controllers\PrintController;
+use App\Livewire\HolidayManager;
 
 Route::get('/', function () {
         return view('welcome');
@@ -99,6 +101,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // 2. Akses Wali Kelas (Hanya untuk kelasnya sendiri)
     Route::middleware(['auth', 'role:walikelas,admin'])->name('attendance.')->group(function () {
         Route::get('/absensi/kelas', ClassAttendance::class)->name('class');
+        Route::get('/absensi/rekap-kelas', ClassAttendanceRecap::class)->name('recap.class');
     });
 
     // 3. Akses Guru Piket (Input Manual & Dispensasi)
@@ -117,6 +120,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/asset-loans', AssetLoanManagement::class)->name('asset-loans.index');
         Route::get('/rooms', RoomManagement::class)->name('rooms.index');
         Route::get('/asset-report', AssetReport::class)->name('asset-report');
+        Route::get('/pdf/room-dir/{room}', [PrintController::class, 'printRoomDir'])->name('print.room.dir');
 
 
         // Grup Manajemen Data Master (Admin Saja)
@@ -127,6 +131,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/prodis', ProdiManagement::class)->name('prodis.index');
             Route::get('/staff', StaffManagement::class)->name('staff.index');
             Route::get('/schedules', ScheduleManager::class)->name('schedules.index');
+            Route::get('/holiday', HolidayManager::class)->name('holiday.index');
         });
     });
 });

@@ -13,7 +13,6 @@ class ClassModel extends Model
     {
         return $this->hasMany(User::class, 'class_id');
     }
-
     // Tambahkan ini di dalam class ClassModel
     public function prodi()
     {
@@ -24,5 +23,10 @@ class ClassModel extends Model
     {
         return $this->hasOne(User::class, 'class_id')->where('role', 'walikelas');
     }
-    
+    // Tambahkan ini di ClassModel.php
+    public function students(): HasMany
+    {
+        return $this->hasMany(User::class, 'class_id')->where('role', 'siswa');
+    }
+
 }

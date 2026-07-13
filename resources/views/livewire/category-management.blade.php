@@ -74,4 +74,45 @@
         </form>
     </flux:modal>
 
+    {{-- MODAL PANDUAN KATEGORI --}}
+<flux:modal wire:model="isCategoryGuideOpen" class="md:w-[500px]">
+    <div class="space-y-6">
+        <div>
+            <flux:heading size="lg">Panduan Kelola Kategori</flux:heading>
+            <flux:subheading>Cara mengatur pengelompokan barang inventaris Anda.</flux:subheading>
+        </div>
+        
+        <div class="space-y-4 text-sm text-zinc-600">
+            <!-- 1. Menambah Kategori -->
+            <div class="flex gap-4">
+                <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold">1</div>
+                <div>
+                    <p class="font-bold text-zinc-900">Menambah Kategori</p>
+                    <p>Klik tombol <b>"Tambah Kategori"</b>, isi nama kategori (misalnya: Elektronik, Mebel, atau Alat Tulis), lalu klik <b>Simpan</b>.</p>
+                </div>
+            </div>
+
+            <!-- 2. Mengelola Barang -->
+            <div class="flex gap-4">
+                <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-orange-100 text-orange-600 font-bold">2</div>
+                <div>
+                    <p class="font-bold text-zinc-900">Edit & Hapus</p>
+                    <p>Gunakan tombol <b>Edit</b> (oranye) untuk mengubah nama kategori. Gunakan tombol <b>Hapus</b> (merah) untuk menghapus kategori yang tidak lagi digunakan.</p>
+                </div>
+            </div>
+
+            <!-- 3. Catatan Penting -->
+            <div class="p-3 bg-amber-50 border border-amber-100 rounded-lg text-amber-800">
+                <p class="text-xs font-semibold">Catatan Penting:</p>
+                <p class="text-xs">Pastikan tidak ada barang yang terdaftar di dalam kategori sebelum Anda menghapusnya, agar data inventaris tetap rapi.</p>
+            </div>
+        </div>
+
+        <div class="flex">
+            <flux:spacer />
+            <flux:button variant="primary" wire:click="$set('isCategoryGuideOpen', false)">Mengerti</flux:button>
+        </div>
+    </div>
+</flux:modal>
+
 </div>

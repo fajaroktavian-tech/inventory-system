@@ -9,8 +9,8 @@
         class="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-5 shadow-xl backdrop-blur-md flex items-center justify-between shrink-0">
         <div class="flex items-center gap-5">
             <div class="w-14 h-14 bg-zinc-800 rounded-2xl border border-zinc-700 flex items-center justify-center p-2">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg"
-                    class="h-full w-auto brightness-90">
+            <img src="{{ asset('images/LogoSMKN7BE.png') }}" 
+            class="h-full w-auto brightness-90 object-contain">
             </div>
             <div>
                 <h1 class="text-xl font-black text-white tracking-tight uppercase leading-none">KIOS ABSENSI DIGITAL
@@ -23,6 +23,11 @@
             <p id="kios-clock" class="text-green-500 font-black text-lg font-mono tracking-tighter">Memuat Waktu...</p>
         </div>
     </header>
+    @if(isset($isHoliday) && $isHoliday)
+    <div class="bg-amber-500/20 border border-amber-500 text-amber-500 p-4 rounded-2xl text-center font-black uppercase tracking-widest">
+        Hari ini adalah hari libur. Tidak ada absensi.
+    </div>
+@endif
 
     {{-- KONTEN UTAMA: 2 KOLOM --}}
     <main class="flex-1 flex flex-row gap-6 min-h-0">

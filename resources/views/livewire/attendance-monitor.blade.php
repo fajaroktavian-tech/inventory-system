@@ -1,4 +1,9 @@
 <div class="p-6 lg:p-8" wire:poll.60s> {{-- Refresh otomatis setiap 5 detik --}}
+<div class="mb-4">
+    @if(\App\Models\SchoolCalendar::where('date', now()->format('Y-m-d'))->where('is_holiday', true)->exists())
+        <flux:badge color="amber" icon="sun">Hari ini sekolah libur ({{ \App\Models\SchoolCalendar::where('date', now()->format('Y-m-d'))->first()->description }})</flux:badge>
+    @endif
+</div>
     <div class="flex items-center justify-between mb-8">
         <div>
             <flux:heading size="xl" level="1">Monitoring Kehadiran Real-time</flux:heading>

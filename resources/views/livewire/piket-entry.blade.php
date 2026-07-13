@@ -1,5 +1,13 @@
 <div class="p-6 max-w-4xl mx-auto space-y-6">
+
+    @if($isHoliday)
+        <div class="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 mb-6" role="alert">
+            <p class="font-bold">Hari Libur Terdeteksi</p>
+            <p>Hari ini ditandai sebagai hari libur di sistem. Fitur input absensi dinonaktifkan.</p>
+        </div>
+    @else
     
+
     <div class="flex justify-between items-center">
         <flux:heading size="xl">Piket & Input Manual</flux:heading>
         <flux:button icon="question-mark-circle" wire:click="$set('isPiketGuideOpen', true)" variant="ghost">Panduan
@@ -140,7 +148,8 @@
                     <li><strong>Input Cepat:</strong> Klik tombol <strong>Hadir</strong> untuk mencatat kehadiran siswa
                         dengan satu klik.</li>
                     <li><strong>Opsi Lain:</strong> Jika siswa Izin, Sakit, Alpa, atau Dispen, gunakan tombol
-                        <strong>Lainnya...</strong> untuk memilih status tersebut.</li>
+                        <strong>Lainnya...</strong> untuk memilih status tersebut.
+                    </li>
                     <li><strong>Riwayat Hari Ini:</strong> Anda bisa memantau siapa saja yang baru saja diinput pada
                         tabel di bawah kolom pencarian.</li>
                     <li><strong>Hapus Kesalahan:</strong> Jika salah input, gunakan ikon <strong>Tempat Sampah</strong>
@@ -162,4 +171,5 @@
             </div>
         </div>
     </flux:modal>
+    @endif
 </div>

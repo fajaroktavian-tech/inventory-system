@@ -176,13 +176,43 @@
                     <flux:spacer />
                     <flux:button x-on:click="$flux.modal('room-assets-modal').close()">Tutup</flux:button>
 
-                    <flux:button icon="printer" variant="filled" color="zinc" wire:click="printDir">
-                        Cetak DIR (A4)
-                    </flux:button>
+                    <a href="{{ route('print.room.dir', $selectedRoom->id) }}" target="_blank" 
+   class="inline-flex items-center px-4 py-2 bg-zinc-800 text-white rounded-lg text-sm font-medium hover:bg-zinc-700">
+   <flux:icon name="printer" class="mr-2" />
+   Cetak DIR (PDF)
+</a>
                 </div>
             </div>
         @endif
     </flux:modal>
+
+    {{-- AREA CETAK TERSEMBUNYI --}}
+    <div id="printable-dir" class="hidden">
+        <style>
+            @media print {
+                body * { visibility: hidden; }
+                #printable-dir, #printable-dir * { visibility: visible; }
+                #printable-dir { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+            }
+        </style>
+        <h2 style="text-align: center;">DAFTAR INVENTARIS RUANGAN: {{ $selectedRoom?->name }}</h2>
+        <table>
+            <thead>
+                <tr><th>Nama Barang</th><th>SN</th><th>Kondisi</th></tr>
+            </thead>
+            <tbody>
+                @foreach($selectedRoom?->assets ?? [] as $asset)
+                    <tr>
+                        <td>{{ $asset->itemInfo->name }}</td>
+                        <td>{{ $asset->serial_number ?? '-' }}</td>
+                        <td>{{ strtoupper(str_replace('_', ' ', $asset->condition)) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 
     <flux:modal wire:model="isRoomGuideOpen" class="md:w-[600px]">
         <div class="space-y-6">

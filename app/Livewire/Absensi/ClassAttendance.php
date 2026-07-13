@@ -12,6 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\AttendanceClassExport; // Sesuaikan namespace Anda
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
+use App\Models\SchoolCalendar;
 
 class ClassAttendance extends Component
 {
@@ -36,46 +37,23 @@ class ClassAttendance extends Component
 
     public function render()
     {
-        $students = User::where('class_id', $this->class?->id ?? 0)
-            ->where('role', 'siswa')
-            ->where('name', 'like', '%' . $this->search . '%')
-            ->when($this->statusFilter, function ($query) {
-                // Kita gunakan whereHas untuk memastikan siswa tsb punya record dengan status tersebut
-                $query->whereHas('attendances', function ($q) {
-                    $q->whereDate('date', $this->selectedDate)
-                        ->where('status', $this->statusFilter);
-                });
-            })
-            ->with([
-                'attendances' => function ($query) {
-                    $query->whereDate('date', $this->selectedDate);
-                }
-            ])
-            ->get();
+        // Cek apakah tanggal terpilih adalah libur
+        $isHoliday = SchoolCalendar::where('date', $this->selectedDate)
+            ->where('is_holiday', true)
+            ->exists();
+
         $baseQuery = User::where('class_id', $this->class?->id ?? 0)
             ->where('role', 'siswa');
 
-        // 1. Total Siswa
         $totalSiswa = $baseQuery->count();
 
-        // 2. Ambil data siswa dengan relasi absensi
         $students = $baseQuery->with([
             'attendances' => function ($query) {
                 $query->whereDate('date', $this->selectedDate);
             }
         ])->get();
 
-        // 3. Hitung Statistik
-        $stats = [
-            'hadir' => 0,
-            'izin' => 0,
-            'terlambat' => 0,
-            'sakit' => 0,
-            'alpa' => 0,
-            'dispen' => 0
-        ];
-
-        $isWeekend = Carbon::parse($this->selectedDate)->isWeekend();
+        $stats = ['hadir' => 0, 'izin' => 0, 'terlambat' => 0, 'sakit' => 0, 'alpa' => 0, 'dispen' => 0];
 
         foreach ($students as $student) {
             $attendance = $student->attendances->first();
@@ -83,18 +61,23 @@ class ClassAttendance extends Component
             if ($attendance) {
                 $stats[$attendance->status]++;
             } else {
-                // HANYA tambah ke Alpa jika BUKAN akhir pekan
-                if (!$isWeekend) {
+                // HANYA tambah ke Alpa jika BUKAN hari libur
+                if (!$isHoliday) {
                     $stats['alpa']++;
                 }
             }
         }
 
-        // 4. Hitung Persentase (Kehadiran = Hadir + Terlambat + Dispen)
-        $hadirTotal = $stats['hadir'] + $stats['dispen']; // Anda bisa sesuaikan definisi 'hadir'
+        $hadirTotal = $stats['hadir'] + $stats['dispen'];
         $persentase = $totalSiswa > 0 ? ($hadirTotal / $totalSiswa) * 100 : 0;
 
-        return view('livewire.class-attendance', compact('students', 'totalSiswa', 'stats', 'persentase'));
+        return view('livewire.class-attendance', [
+            'students' => $students,
+            'totalSiswa' => $totalSiswa,
+            'stats' => $stats,
+            'persentase' => $persentase,
+            'isHoliday' => $isHoliday // Kirim ke view
+        ]);
     }
 
     public function openEditModal($attendanceId)
@@ -129,6 +112,12 @@ class ClassAttendance extends Component
 
     public function createAttendance($studentId)
     {
+        $isHoliday = SchoolCalendar::where('date', $this->selectedDate)->where('is_holiday', true)->exists();
+
+        if ($isHoliday) {
+            Flux::toast('Tidak dapat menambah absensi di hari libur.', 'danger');
+            return;
+        }
         // Logika untuk membuat record baru saat tombol + diklik
         Attendance::create([
             'user_id' => $studentId,

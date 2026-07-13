@@ -3,14 +3,24 @@
 
     {{-- FORM INPUT --}}
     <flux:card class="p-4 space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <flux:input label="Nama Jadwal" wire:model="name" placeholder="Contoh: Senin-Kamis" />
-            <flux:checkbox label="Aktifkan Jadwal" wire:model="is_active" />
-            <flux:input label="Jam Masuk" type="time" wire:model="start_time" />
-            <flux:input label="Jam Pulang" type="time" wire:model="end_time" />
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <flux:input label="Nama Jadwal" wire:model="name" />
+        <flux:checkbox label="Aktifkan Jadwal" wire:model="is_active" />
+        
+        <div class="col-span-2">
+            <flux:label>Pilih Hari Berlaku:</flux:label>
+            <div class="flex gap-4 mt-2">
+                @foreach($daysOptions as $key => $day)
+                    <flux:checkbox label="{{ $day }}" wire:model="days" value="{{ $key }}" />
+                @endforeach
+            </div>
         </div>
-        <flux:button variant="primary" wire:click="save">Simpan Jadwal</flux:button>
-    </flux:card>
+
+        <flux:input label="Jam Masuk" type="time" wire:model="start_time" />
+        <flux:input label="Jam Pulang" type="time" wire:model="end_time" />
+    </div>
+    <flux:button variant=primary wire:click="save">Simpan Jadwal</flux:button>
+</flux:card>
 
     {{-- TABEL JADWAL --}}
     <flux:table>
