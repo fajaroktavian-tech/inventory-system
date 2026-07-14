@@ -8,10 +8,12 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
 
 # Tambahkan ini untuk konfigurasi PHP upload
-RUN echo "upload_max_filesize = 20M" > /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "post_max_size = 20M" >> /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/uploads.ini \
-    echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/uploads.ini
+RUN { \
+    echo "upload_max_filesize = 64M"; \
+    echo "post_max_size = 64M"; \
+    echo "memory_limit = 512M"; \
+    echo "max_execution_time = 300"; \
+    } > /usr/local/etc/php/conf.d/uploads.ini
 
 # 3. Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

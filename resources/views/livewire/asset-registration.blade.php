@@ -94,11 +94,11 @@
             @foreach($assets as $asset)
                 <flux:table.row :key="$asset->id">
                     <!-- <flux:table.cell>
-                                                                                            <div
-                                                                                                class="bg-white p-1 inline-block rounded border shadow-sm cursor-pointer hover:scale-110 transition-transform">
-                                                                                                {!! $asset->getQrCode() !!}
-                                                                                            </div>
-                                                                                        </flux:table.cell> -->
+                                                                                                <div
+                                                                                                    class="bg-white p-1 inline-block rounded border shadow-sm cursor-pointer hover:scale-110 transition-transform">
+                                                                                                    {!! $asset->getQrCode() !!}
+                                                                                                </div>
+                                                                                            </flux:table.cell> -->
                     <flux:table.cell>
                         <p class="font-medium">{{ $asset->itemInfo->name }}</p>
                         <p class="text-xs text-zinc-500 italic">SN: {{ $asset->serial_number ?? 'N/A' }}</p>
@@ -234,6 +234,12 @@
                 <flux:input type="number" label="Jumlah Unit (Qty)" wire:model="qty" min="1" />
                 <flux:input label="Sumber Dana" wire:model="source_fund" placeholder="BOS / BOPD / Hibah" />
             </div>
+            {{-- TAMBAHKAN INI --}}
+            <div class="grid grid-cols-1">
+                <flux:input label="Serial Number (Opsional)" wire:model="serial_number"
+                    placeholder="Kosongkan untuk auto-generate" />
+            </div>
+            {{-- ---------------- --}}
 
             <div class="grid grid-cols-2 gap-4">
                 <flux:input type="number" label="Tahun Perolehan" wire:model="acquisition_year" />
@@ -372,39 +378,44 @@
     </flux:modal>
 
     <flux:modal wire:model="isAssetGuideOpen" class="md:w-[600px]">
-    <div class="space-y-6">
-        <flux:heading size="lg">Panduan Registrasi Aset</flux:heading>
-        
-        <div class="space-y-4 text-sm text-zinc-600">
-            <!-- 1. Input Aset -->
-            <div class="p-4 bg-blue-50 rounded-lg">
-                <h4 class="font-bold text-blue-900 mb-1">1. Menambah Unit Baru</h4>
-                <p>Klik tombol <b>"Input Aset"</b>. Anda bisa menginput barang dalam jumlah banyak sekaligus dengan mengisi kolom <b>Qty</b>. Sistem akan otomatis membuatkan Serial Number unik untuk setiap unit jika dikosongkan.</p>
+        <div class="space-y-6">
+            <flux:heading size="lg">Panduan Registrasi Aset</flux:heading>
+
+            <div class="space-y-4 text-sm text-zinc-600">
+                <!-- 1. Input Aset -->
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-bold text-blue-900 mb-1">1. Menambah Unit Baru</h4>
+                    <p>Klik tombol <b>"Input Aset"</b>. Anda bisa menginput barang dalam jumlah banyak sekaligus dengan
+                        mengisi kolom <b>Qty</b>. Sistem akan otomatis membuatkan Serial Number unik untuk setiap unit
+                        jika dikosongkan.</p>
+                </div>
+
+                <!-- 2. Filter & Pencarian -->
+                <div class="p-4 bg-zinc-50 rounded-lg">
+                    <h4 class="font-bold text-zinc-900 mb-1">2. Mencari & Memfilter</h4>
+                    <p>Gunakan kolom pencarian untuk mencari berdasarkan nama barang atau Serial Number. Gunakan filter
+                        <b>Ruangan</b> dan <b>Kondisi</b> untuk mempersempit daftar aset yang ditampilkan.</p>
+                </div>
+
+                <!-- 3. Pelabelan -->
+                <div class="p-4 bg-zinc-50 rounded-lg">
+                    <h4 class="font-bold text-zinc-900 mb-1">3. Cetak Label QR</h4>
+                    <p>Setiap aset memiliki QR Code unik. Klik ikon <b>Printer</b> pada baris aset untuk membuka modal
+                        cetak, lalu pilih <b>"Cetak Thermal"</b> untuk mencetak label stiker inventaris.</p>
+                </div>
+
+                <!-- 4. Data & Laporan -->
+                <div class="p-4 bg-zinc-50 rounded-lg">
+                    <h4 class="font-bold text-zinc-900 mb-1">4. Laporan (Export)</h4>
+                    <p>Klik tombol <b>Export</b> untuk mengunduh daftar aset saat ini ke format <b>Excel</b> atau
+                        <b>PDF</b> sesuai dengan filter yang sedang aktif.</p>
+                </div>
             </div>
 
-            <!-- 2. Filter & Pencarian -->
-            <div class="p-4 bg-zinc-50 rounded-lg">
-                <h4 class="font-bold text-zinc-900 mb-1">2. Mencari & Memfilter</h4>
-                <p>Gunakan kolom pencarian untuk mencari berdasarkan nama barang atau Serial Number. Gunakan filter <b>Ruangan</b> dan <b>Kondisi</b> untuk mempersempit daftar aset yang ditampilkan.</p>
-            </div>
-
-            <!-- 3. Pelabelan -->
-            <div class="p-4 bg-zinc-50 rounded-lg">
-                <h4 class="font-bold text-zinc-900 mb-1">3. Cetak Label QR</h4>
-                <p>Setiap aset memiliki QR Code unik. Klik ikon <b>Printer</b> pada baris aset untuk membuka modal cetak, lalu pilih <b>"Cetak Thermal"</b> untuk mencetak label stiker inventaris.</p>
-            </div>
-
-            <!-- 4. Data & Laporan -->
-            <div class="p-4 bg-zinc-50 rounded-lg">
-                <h4 class="font-bold text-zinc-900 mb-1">4. Laporan (Export)</h4>
-                <p>Klik tombol <b>Export</b> untuk mengunduh daftar aset saat ini ke format <b>Excel</b> atau <b>PDF</b> sesuai dengan filter yang sedang aktif.</p>
+            <div class="flex">
+                <flux:spacer />
+                <flux:button variant="primary" wire:click="$set('isAssetGuideOpen', false)">Mengerti</flux:button>
             </div>
         </div>
-
-        <div class="flex">
-            <flux:spacer />
-            <flux:button variant="primary" wire:click="$set('isAssetGuideOpen', false)">Mengerti</flux:button>
-        </div>
-    </div>
-</flux:modal>
+    </flux:modal>
 </div>
