@@ -16,13 +16,6 @@ class AttendanceGateway extends Component
     public $message = '';
     public $status = '';
 
-    // Pengaturan Jam Sekolah (Bisa dipindahkan ke tabel setting nantinya)
-    // protected $schoolSettings = [
-    //     'start_time' => '07:00:00', // Jam masuk normal
-    //     'limit_time' => '07:15:00', // Batas akhir toleransi terlambat
-    //     'return_time' => '15:00:00', // Jam pulang
-    // ];
-
     public function updatedSearchRfid()
     {
         $this->processAttendance();

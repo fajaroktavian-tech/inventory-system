@@ -8,9 +8,13 @@ use Flux\Flux;
 class ScheduleManager extends Component
 {
     public $name, $start_time, $end_time, $is_active, $days = [];
-public $daysOptions = [
-    1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat'
-];
+    public $daysOptions = [
+        1 => 'Senin',
+        2 => 'Selasa',
+        3 => 'Rabu',
+        4 => 'Kamis',
+        5 => 'Jumat'
+    ];
     public $editingId = null;
 
     public function save()

@@ -20,6 +20,7 @@ class AssetRegistration extends Component
     public $selectedAsset;
     public $filterRoom = '';
     public $filterCondition = '';
+    public $bast_date;
 
     public $search = '';
     public $assetId, $asset_item_id, $room_id, $pic_id, $serial_number, $source_fund, $acquisition_year, $price, $condition = 'baik', $status = 'tersedia';
@@ -40,7 +41,12 @@ class AssetRegistration extends Component
     {
         $this->resetPage();
     }
-
+    public function updatedBastDate($value)
+    {
+        if ($value) {
+            $this->acquisition_year = \Carbon\Carbon::parse($value)->format('Y');
+        }
+    }
     public function updatedFilterRoom()
     {
         $this->resetPage();
@@ -58,6 +64,7 @@ class AssetRegistration extends Component
         'acquisition_year' => 'required|numeric',
         'price' => 'nullable|numeric',
         'status' => 'required|in:tersedia,dipinjam,hilang,diserahkan',
+        'bast_date' => 'required|date',
     ];
 
     public function render()
@@ -108,7 +115,7 @@ class AssetRegistration extends Component
 
     public function create()
     {
-        $this->reset(['assetId', 'asset_item_id', 'room_id', 'pic_id', 'serial_number', 'source_fund', 'acquisition_year', 'price', 'qty', 'selectedCatalogData', 'selectedRoomData', 'selectedPicData']);
+        $this->reset(['assetId', 'asset_item_id', 'room_id', 'pic_id', 'serial_number', 'source_fund', 'acquisition_year', 'price', 'qty', 'selectedCatalogData', 'selectedRoomData', 'selectedPicData', 'bast_date']);
         $this->status = 'tersedia';
         $this->qty = 1;
         $this->isModalOpen = true;
@@ -121,6 +128,7 @@ class AssetRegistration extends Component
             'room_id' => 'required',
             'pic_id' => 'required',
             'source_fund' => 'required',
+            'bast_date' => 'required|date',
             'acquisition_year' => 'required|numeric',
             'qty' => 'required|numeric|min:1',
             // SN hanya unique jika diisi dan bukan sedang edit
@@ -166,6 +174,7 @@ class AssetRegistration extends Component
             'price' => $this->price ?? 0,
             'condition' => $this->condition,
             'status' => $this->status,
+            'bast_date' => $this->bast_date,
             'barcode_token' => 'AST-' . strtoupper(bin2hex(random_bytes(4))),
         ];
     }
@@ -187,6 +196,7 @@ class AssetRegistration extends Component
         $this->qty = 1;
         $this->status = $asset->status;
         $this->isModalOpen = true;
+        $this->bast_date = $asset->bast_date;
     }
 
     public function showDetail($id)
@@ -282,4 +292,5 @@ class AssetRegistration extends Component
             echo $pdf->stream();
         }, 'Laporan-Aset-' . now()->format('Ymd') . '.pdf');
     }
+
 }

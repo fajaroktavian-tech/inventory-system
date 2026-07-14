@@ -102,7 +102,8 @@
                     <flux:table.cell>
                         <p class="font-medium">{{ $asset->itemInfo->name }}</p>
                         <p class="text-xs text-zinc-500 italic">SN: {{ $asset->serial_number ?? 'N/A' }}</p>
-                        <p class="text-[10px] text-blue-600">Masuk: {{ $asset->created_at->format('d M Y') }}</p>
+                        <p class="text-[10px] text-blue-600">BAST: {{ $asset->bast_date ? \Carbon\Carbon::parse($asset->bast_date)->format('d M Y') : 'N/A' }}</p>
+                        <!-- <p class="text-[10px] text-blue-600">Masuk: {{ $asset->created_at->format('d M Y') }}</p> -->
                     </flux:table.cell>
                     <flux:table.cell>
                         <p class="text-sm">{{ $asset->room->name }}</p>
@@ -240,9 +241,9 @@
                     placeholder="Kosongkan untuk auto-generate" />
             </div>
             {{-- ---------------- --}}
-
             <div class="grid grid-cols-2 gap-4">
-                <flux:input type="number" label="Tahun Perolehan" wire:model="acquisition_year" />
+            <flux:input type="date" label="Tanggal BAST" wire:model="bast_date" />
+                <!-- <flux:input type="number" label="Tahun Perolehan" wire:model="acquisition_year" /> -->
                 <flux:input type="number" label="Harga (Rp)" wire:model="price" />
             </div>
 

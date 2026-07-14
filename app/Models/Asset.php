@@ -20,7 +20,8 @@ class Asset extends Model
         'price',
         'condition',
         'status',
-        'barcode_token'
+        'barcode_token',
+        'bast_date',
     ];
 
     public function itemInfo()
