@@ -1,5 +1,10 @@
 <div class="p-6 space-y-6">
     <flux:heading size="xl">Dashboard Absensi</flux:heading>
+    @if($isHoliday)
+    <div class="p-4 bg-blue-100 text-blue-800 rounded-lg font-bold">
+        Hari ini adalah hari libur: {{ $holidayName ?? 'Libur Nasional/Sekolah' }}
+    </div>
+@endif
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {{-- Total Siswa --}}

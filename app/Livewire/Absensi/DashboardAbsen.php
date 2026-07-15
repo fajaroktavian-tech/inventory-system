@@ -7,14 +7,22 @@ use App\Models\Attendance;
 use App\Models\User;
 use Carbon\Carbon;
 use App\Models\ClassModel;
+use App\Models\SchoolCalendar;
+use App\Models\Schedule;
 
 class DashboardAbsen extends Component
 {
     public function render()
     {
         $today = Carbon::today();
+        $dayName = $today->translatedFormat('l'); // Senin, Selasa, dst.
+        $dayNumber = $today->dayOfWeekIso; // 1 = Senin, ... 7 = Minggu
+
+        $calendarEvent = \App\Models\SchoolCalendar::where('date', $today->format('Y-m-d'))->first();
+        $isHoliday = $calendarEvent ? $calendarEvent->is_holiday : false;
         $totalSiswa = User::where('role', 'siswa')->where('is_active', true)->count();
         $totalHadir = Attendance::where('date', $today)->whereIn('status', ['hadir', 'terlambat'])->count();
+        $holidayName = $calendarEvent ? $calendarEvent->description : 'Libur';
         // 1. Ambil ID siswa yang sudah absen hari ini
         $attendedIds = Attendance::where('date', $today)
             ->pluck('user_id');
@@ -27,12 +35,18 @@ class DashboardAbsen extends Component
             ->orderBy('class_id')
             ->get();
 
+        $schedule = Schedule::where('is_active', true)
+            ->whereJsonContains('days', (string) $dayNumber)
+            ->first();
+
+        $startTime = $schedule ? $schedule->start_time : '07:00:00';
+
         $stats = [
             'total_hadir' => $totalHadir,
             'persentase' => $totalSiswa > 0 ? number_format(($totalHadir / $totalSiswa) * 100, 1) : 0,
             'terlambat' => Attendance::where('date', $today)->where('status', 'terlambat')->count(),
-            'sakit_izin'   => Attendance::where('date', $today)->whereIn('status', ['sakit', 'izin', 'dispen'])->count(),
-            'alpa'         => $absentStudents->count(), // Menggunakan hasil query di atas
+            'sakit_izin' => Attendance::where('date', $today)->whereIn('status', ['sakit', 'izin', 'dispen'])->count(),
+            'alpa' => $absentStudents->count(), // Menggunakan hasil query di atas
         ];
 
         // 2. Logic Tren Kehadiran (7 Hari Terakhir)
@@ -43,6 +57,22 @@ class DashboardAbsen extends Component
             ->selectRaw('date, count(*) as total')
             ->groupBy('date')
             ->pluck('total', 'date');
+
+        if ($isHoliday) {
+            return view('livewire.dashboard-absen', [
+                'isHoliday' => true,
+                'holidayName' => $holidayName,
+                'stats' => ['total_hadir' => 0, 'persentase' => 0, 'terlambat' => 0, 'sakit_izin' => 0, 'alpa' => 0],
+                'totalSiswa' => $totalSiswa,
+                'lineChartData' => json_encode([]),
+                'lineCategories' => json_encode([]),
+                'classNames' => json_encode([]),
+                'classCounts' => json_encode([]),
+                'absentStudents' => collect(),
+                'recentTaps' => collect(),
+                'lateStudents' => collect(),
+            ]);
+        }
 
         $lineChartData = $dates->map(fn($date) => $trendData->get($date, 0));
         $lineCategories = $dates->map(fn($date) => Carbon::parse($date)->translatedFormat('D, d M'));
@@ -56,6 +86,12 @@ class DashboardAbsen extends Component
             }
         ])->get();
 
+        $terlambatCount = Attendance::where('date', $today)
+            ->where('status', 'terlambat')
+            // Jika status terlambat belum otomatis, gunakan: 
+            // ->where('time_in', '>', $startTime) 
+            ->count();
+
         return view('livewire.dashboard-absen', [
             'stats' => $stats,
             'lineChartData' => $lineChartData->toJson(),
@@ -63,7 +99,7 @@ class DashboardAbsen extends Component
             'classNames' => $classData->pluck('name')->toJson(),
             'classCounts' => $classData->pluck('students_count')->toJson(),
             'absentStudents' => $absentStudents,
-            'totalSiswa'     => $totalSiswa,
+            'totalSiswa' => $totalSiswa,
 
             // Data Tambahan untuk Tabel
             'recentTaps' => Attendance::with(['student.class'])
