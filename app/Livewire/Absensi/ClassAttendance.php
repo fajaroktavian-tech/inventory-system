@@ -43,7 +43,10 @@ class ClassAttendance extends Component
             ->exists();
 
         $baseQuery = User::where('class_id', $this->class?->id ?? 0)
-            ->where('role', 'siswa');
+            ->where('role', 'siswa')
+            ->when($this->search, function ($query) {
+                $query->where('name', 'like', '%' . $this->search . '%');
+            });
 
         $totalSiswa = $baseQuery->count();
 
@@ -54,6 +57,17 @@ class ClassAttendance extends Component
         ])->get();
 
         $stats = ['hadir' => 0, 'izin' => 0, 'terlambat' => 0, 'sakit' => 0, 'alpa' => 0, 'dispen' => 0];
+
+        // Hitung statistik menggunakan data tanpa filter search agar akurat
+        $allStudents = User::where('class_id', $this->class?->id ?? 0)->where('role', 'siswa')->get();
+        foreach ($allStudents as $student) {
+            $attendance = $student->attendances()->whereDate('date', $this->selectedDate)->first();
+            if ($attendance) {
+                $stats[$attendance->status]++;
+            } elseif (!$isHoliday) {
+                $stats['alpa']++;
+            }
+        }
 
         foreach ($students as $student) {
             $attendance = $student->attendances->first();
