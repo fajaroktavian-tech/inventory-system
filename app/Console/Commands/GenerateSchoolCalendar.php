@@ -15,7 +15,7 @@ class GenerateSchoolCalendar extends Command
      */
     public function handle()
     {
-        $startDate = \Carbon\Carbon::create(2026, 7, 20); // Awal tahun ajaran
+        $startDate = \Carbon\Carbon::create(2026, 7, 17); // Awal tahun ajaran
         $endDate = \Carbon\Carbon::create(2027, 6, 30);
 
         while ($startDate <= $endDate) {

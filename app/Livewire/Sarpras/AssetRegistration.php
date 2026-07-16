@@ -135,11 +135,13 @@ class AssetRegistration extends Component
             'serial_number' => $this->assetId ? 'nullable' : 'nullable|unique:assets,serial_number',
         ]);
 
+        try{
+
         DB::transaction(function () {
             if ($this->assetId) {
                 // MODE EDIT
                 $asset = Asset::findOrFail($this->assetId);
-                $asset->update($this->getAssetData($this->serial_number));
+                $asset->update($this->getAssetData($this->serial_number ?: $asset->serial_number));
             } else {
                 // MODE TAMBAH (Mendukung Qty Banyak)
                 for ($i = 0; $i < $this->qty; $i++) {
@@ -151,6 +153,7 @@ class AssetRegistration extends Component
                         $prefix = strtoupper(substr(str_replace(' ', '', $item->name), 0, 3));
                         $rand = strtoupper(bin2hex(random_bytes(2)));
                         // Format: KURS-20260531-RAND-1
+                        $rand = strtoupper(substr(md5(uniqid()), 0, 4));
                         $sn = $prefix . '-' . now()->format('Ymd') . '-' . $rand . '-' . ($i + 1);
                     }
 
@@ -160,6 +163,12 @@ class AssetRegistration extends Component
         });
         $this->isModalOpen = false;
         session()->flash('message', 'Unit Aset berhasil diregistrasi.');
+        $this->reset(['assetId', 'serial_number', 'qty']);
+    } catch (\Exception $e) {
+        // Log error ke storage/logs/laravel.log untuk tahu penyebab pastinya
+        \Log::error("Error saat simpan aset: " . $e->getMessage());
+        session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
+    }
     }
 
     private function getAssetData($sn)
@@ -175,7 +184,7 @@ class AssetRegistration extends Component
             'condition' => $this->condition,
             'status' => $this->status,
             'bast_date' => $this->bast_date,
-            'barcode_token' => 'AST-' . strtoupper(bin2hex(random_bytes(4))),
+            'barcode_token' => $this->assetId ? Asset::find($this->assetId)->barcode_token : 'AST-' . strtoupper(bin2hex(random_bytes(4))),
         ];
     }
     public function edit($id)
