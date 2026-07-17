@@ -27,6 +27,16 @@ class AttendanceGateway extends Component
         $rfidInput = trim($this->searchRfid);
         $today = Carbon::today();
 
+        $dayOfWeek = $today->dayOfWeekIso;
+
+        $activeSchedule = Schedule::where('is_active', true)
+        ->whereJsonContains('days', (string)$dayOfWeek) // Pastikan formatnya sama dengan yang disimpan
+        ->first();
+
+        if (!$activeSchedule) {
+            $activeSchedule = Schedule::where('is_active', true)->first();
+        }
+
         // 1. CEK HARI LIBUR DARI DATABASE (Cukup satu kali di sini)
         $isHoliday = SchoolCalendar::where('date', $today->toDateString())
             ->where('is_holiday', true)
@@ -64,7 +74,6 @@ class AttendanceGateway extends Component
 
         $today = Carbon::today();
         $now = Carbon::now();
-        $activeSchedule = Schedule::where('is_active', true)->first();
 
         // Gunakan jadwal dari DB, jika tidak ada jadwal aktif, gunakan default jam 12:00
         $startTime = $activeSchedule ? $activeSchedule->start_time : '06:45:00';

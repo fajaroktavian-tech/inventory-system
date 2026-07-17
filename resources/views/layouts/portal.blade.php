@@ -13,7 +13,7 @@
     <header class="bg-white border-b shadow-sm">
         <nav class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('images/Logo SMKN 7 BE.png') }}" class="h-10" alt="Logo">
+                <img src="{{ asset('images/LogoSMKN7BE.png') }}" class="h-10" alt="Logo">
                 <span class="font-bold text-lg uppercase tracking-wider">Portal <span class="text-red-600">S7B</span></span>
             </div>
             <div>
