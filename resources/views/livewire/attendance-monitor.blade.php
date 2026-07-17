@@ -61,7 +61,11 @@
                     <option value="izin">Izin</option>
                     <option value="sakit">Sakit</option>
                 </flux:select>
+                <flux:button wire:click="export" icon="arrow-down-tray" variant="primary">
+        Export Excel
+    </flux:button>
             </div>
+            
         </div>
 
         <flux:table>

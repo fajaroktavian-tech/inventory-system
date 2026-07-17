@@ -10,6 +10,8 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Schedule;
 use App\Models\SchoolCalendar;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\AttendanceRealExport;
 
 class AttendanceMonitor extends Component
 {
@@ -19,6 +21,10 @@ class AttendanceMonitor extends Component
     public $filterStatus = '';
 
     // Render akan dipanggil otomatis setiap kali polling berjalan
+    public function export()
+{
+    return Excel::download(new AttendanceRealExport, 'Absensi-' . Carbon::today()->format('Y-m-d') . '.xlsx');
+}
     public function render()
     {
         $today = Carbon::today();
