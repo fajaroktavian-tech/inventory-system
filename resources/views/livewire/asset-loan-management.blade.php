@@ -106,12 +106,34 @@
                 @endif
             </div>
 
-            <flux:select label="Peminjam" wire:model="user_id" placeholder="Pilih peminjam...">
-                @foreach($users as $user)
-                    <flux:select.option value="{{ $user->id }}">{{ $user->name }} ({{ strtoupper($user->role) }})
-                    </flux:select.option>
+            <div class="relative">
+    <flux:label>Peminjam</flux:label>
+    
+    @if(!$selectedUser)
+        <flux:input wire:model.live.debounce.300ms="search_user" icon="magnifying-glass"
+            placeholder="Ketik nama peminjam..." />
+
+        @if(count($availableUsers) > 0)
+            <div class="absolute z-50 w-full bg-white border border-zinc-200 rounded-xl shadow-xl mt-1 overflow-hidden">
+                @foreach($availableUsers as $user)
+                    <button type="button" wire:click="selectUser({{ $user->id }})"
+                        class="w-full text-left p-3 hover:bg-zinc-50 border-b border-zinc-50">
+                        <p class="text-sm font-bold">{{ $user->name }}</p>
+                        <p class="text-[10px] text-zinc-400">{{ strtoupper($user->role) }}</p>
+                    </button>
                 @endforeach
-            </flux:select>
+            </div>
+        @endif
+    @else
+        {{-- TAMPILAN JIKA USER SUDAH DIPILIH --}}
+        <div class="p-3 bg-zinc-100 border border-zinc-200 rounded-xl flex items-center justify-between">
+            <p class="text-sm font-bold text-zinc-800">{{ $selectedUser }}</p>
+            <button type="button" wire:click="removeSelectedUser" class="text-red-500 hover:bg-red-50 p-1 rounded-md">
+                <flux:icon name="x-mark" size="sm" />
+            </button>
+        </div>
+    @endif
+</div>
 
             <div class="grid grid-cols-2 gap-4">
                 <flux:input type="date" label="Tgl Pinjam" wire:model="loan_date" />

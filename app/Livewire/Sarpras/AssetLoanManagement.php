@@ -14,11 +14,26 @@ class AssetLoanManagement extends Component
     use WithPagination;
 
     public $search = '';
+    public $search_user = '';
+    public $selectedUser = null;
     public $loanId, $asset_id, $user_id, $loan_date, $due_date, $notes;
     public $isModalOpen = false;
     public $search_asset = '';
     public $selectedAsset = null;
 
+    public function selectUser($id)
+{
+    $user = User::find($id);
+    $this->user_id = $user->id;
+    $this->selectedUser = $user->name . ' (' . strtoupper($user->role) . ')';
+    $this->search_user = ''; // Kosongkan pencarian
+}
+
+public function removeSelectedUser()
+{
+    $this->user_id = null;
+    $this->selectedUser = null;
+}
     protected $rules = [
         'asset_id' => 'required',
         'user_id' => 'required',
@@ -27,43 +42,50 @@ class AssetLoanManagement extends Component
     ];
 
     public function render()
-{
-    // Logika pencarian aset di dalam modal (tetap sama)
-    $availableAssets = [];
-    if (strlen($this->search_asset) > 1) {
-        $availableAssets = Asset::with('itemInfo')
-            ->where('status', 'tersedia')
-            ->where(function($q) {
-                $q->whereHas('itemInfo', function($query) {
-                    $query->where('name', 'like', '%' . $this->search_asset . '%');
+    {
+        // Logika pencarian aset di dalam modal (tetap sama)
+        $availableAssets = [];
+        if (strlen($this->search_asset) > 1) {
+            $availableAssets = Asset::with('itemInfo')
+                ->where('status', 'tersedia')
+                ->where(function ($q) {
+                    $q->whereHas('itemInfo', function ($query) {
+                        $query->where('name', 'like', '%' . $this->search_asset . '%');
+                    })
+                        ->orWhere('serial_number', 'like', '%' . $this->search_asset . '%');
                 })
-                ->orWhere('serial_number', 'like', '%' . $this->search_asset . '%');
-            })
+                ->limit(5)->get();
+        }
+
+        $availableUsers = [];
+    if (strlen($this->search_user) > 1) {
+        $availableUsers = User::where('name', 'like', '%' . $this->search_user . '%')
             ->limit(5)->get();
     }
 
-    return view('livewire.asset-loan-management', [
-        'loans' => AssetLoan::with(['asset.itemInfo', 'user'])
-            ->where(function($query) {
-                // Cari berdasarkan Nama Peminjam
-                $query->whereHas('user', function($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%');
+        return view('livewire.asset-loan-management', [
+            'loans' => AssetLoan::with(['asset.itemInfo', 'user'])
+                ->where(function ($query) {
+                    // Cari berdasarkan Nama Peminjam
+                    $query->whereHas('user', function ($q) {
+                        $q->where('name', 'like', '%' . $this->search . '%');
+                    })
+                        // ATAU Cari berdasarkan Nama Barang di Katalog Aset
+                        ->orWhereHas('asset.itemInfo', function ($q) {
+                        $q->where('name', 'like', '%' . $this->search . '%');
+                    })
+                        // ATAU Cari berdasarkan Nomor Seri Aset
+                        ->orWhereHas('asset', function ($q) {
+                        $q->where('serial_number', 'like', '%' . $this->search . '%');
+                    });
                 })
-                // ATAU Cari berdasarkan Nama Barang di Katalog Aset
-                ->orWhereHas('asset.itemInfo', function($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%');
-                })
-                // ATAU Cari berdasarkan Nomor Seri Aset
-                ->orWhereHas('asset', function($q) {
-                    $q->where('serial_number', 'like', '%' . $this->search . '%');
-                });
-            })
-            ->latest()
-            ->paginate(10),
-        'availableAssets' => $availableAssets,
-        'users' => User::orderBy('name')->get(),
-    ])->layout('layouts.app');
-}
+                ->latest()
+                ->paginate(10),
+            'availableAssets' => $availableAssets,
+            'users' => User::orderBy('name')->get(),
+            'availableUsers' => $availableUsers,
+        ])->layout('layouts.app');
+    }
 
     public function create()
     {
