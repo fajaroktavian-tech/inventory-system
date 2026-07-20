@@ -21,7 +21,12 @@ class StaffManagement extends Component
 
     public function render()
     {
+        $totalGuru = User::where('role', 'guru')->count();
+    $totalStaff = User::where('role', 'staff')->count();
+
         return view('livewire.staff-management', [
+            'totalGuru' => $totalGuru,
+        'totalStaff' => $totalStaff,
             'staffs' => User::whereIn('role', ['guru', 'staff'])
                 ->where(
                     fn($q) =>
@@ -31,6 +36,10 @@ class StaffManagement extends Component
                 )
                 ->latest()->paginate(10)
         ])->layout('layouts.app');
+    }
+    public function updatingSearch()
+    {
+        $this->resetPage();
     }
 
     public function create()

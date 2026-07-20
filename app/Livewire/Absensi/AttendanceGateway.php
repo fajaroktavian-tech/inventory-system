@@ -142,9 +142,12 @@ class AttendanceGateway extends Component
             ->take(10)
             ->get();
 
+        $totalHadir = Attendance::where('date', $today)->count();
+
         return view('livewire.attendance-gateway', [
             'recentTaps' => $recentTaps,
-            'isHoliday' => $isHoliday // Kirim variabel ini ke view
+            'isHoliday' => $isHoliday, // Kirim variabel ini ke view
+            'totalHadir' => $totalHadir
         ])->layout('layouts.kios');
     }
 }

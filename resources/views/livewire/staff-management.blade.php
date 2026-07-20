@@ -1,5 +1,17 @@
 <div class="p-6">
     <flux:heading size="xl">Data Guru & Staff</flux:heading>
+    {{-- Tambahkan Card Statistik di sini --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <flux:card class="p-4 border-l-4 border-blue-500">
+            <flux:subheading>Total Guru</flux:subheading>
+            <div class="text-3xl font-black mt-2 text-blue-600">{{ $totalGuru }}</div>
+        </flux:card>
+        
+        <flux:card class="p-4 border-l-4 border-orange-500">
+            <flux:subheading>Total Staff TU</flux:subheading>
+            <div class="text-3xl font-black mt-2 text-orange-600">{{ $totalStaff }}</div>
+        </flux:card>
+    </div>
 
     <div class="flex justify-between mt-8 mb-4">
         <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="Cari NIP atau Nama..." class="max-w-xs" />
@@ -48,6 +60,9 @@
             @endforeach
         </flux:table.rows>
     </flux:table>
+    <div class="mt-4">
+        {{ $staffs->links() }}
+    </div>
 
     {{-- 1. MODAL FORM (UNTUK TAMBAH & EDIT) --}}
     <flux:modal wire:model="isModalOpen" class="md:w-[500px]">

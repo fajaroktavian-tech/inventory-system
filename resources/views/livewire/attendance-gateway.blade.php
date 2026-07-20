@@ -118,6 +118,12 @@
                 <h3 class="text-xs font-black text-zinc-350 uppercase tracking-[0.4em] flex items-center gap-3">
                     LOG AKTIVITAS HARI INI
                 </h3>
+                <div class="flex gap-2">
+        {{-- Badge Total Absen --}}
+        <div class="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+            Total Absen: {{ $totalHadir }} Siswa
+        </div>
+    </div>
                 <span
                     class="px-4 py-1.5 bg-zinc-800 rounded-lg text-[10px] font-black text-zinc-350 border border-zinc-700">TERBARU:
                     {{ count($recentTaps) }}</span>
