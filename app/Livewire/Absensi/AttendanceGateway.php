@@ -29,6 +29,9 @@ class AttendanceGateway extends Component
 
         $dayOfWeek = $today->dayOfWeekIso;
 
+        $this->message = '';
+        $this->status = '';
+
         $activeSchedule = Schedule::where('is_active', true)
         ->whereJsonContains('days', (string)$dayOfWeek) // Pastikan formatnya sama dengan yang disimpan
         ->first();
@@ -53,9 +56,6 @@ class AttendanceGateway extends Component
 
         if (empty($rfidInput))
             return;
-
-        $this->message = '';
-        $this->status = '';
 
         // 2. Cari User berdasarkan RFID
         $user = User::where('rfid_uid', $rfidInput)
@@ -85,7 +85,7 @@ class AttendanceGateway extends Component
             ->first();
 
         // Hitung limit terlambat (misal: start_time + 15 menit)
-        $limitTime = Carbon::parse($startTime)->addMinutes(15)->toTimeString();
+        $limitTime = $startTime;
 
         if (!$attendance) {
             // LOGIKA TAP IN (MASUK)

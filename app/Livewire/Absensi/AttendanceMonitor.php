@@ -28,28 +28,33 @@ class AttendanceMonitor extends Component
     public function render()
     {
         $today = Carbon::today();
-        $activeSchedule = Schedule::where('is_active', true)->first();
+        $dayOfWeek = $today->dayOfWeekIso;
 
         // CEK APAKAH HARI INI LIBUR
         $isHoliday = SchoolCalendar::where('date', $today->format('Y-m-d'))
             ->where('is_holiday', true)
             ->exists();
 
-        $limitTime = $activeSchedule ? $activeSchedule->start_time : '07:00:00';
-        $totalSiswa = User::where('role', 'siswa')->count();
+            $activeSchedule = Schedule::where('is_active', true)
+            ->whereJsonContains('days', (string)$dayOfWeek)
+            ->first();
+
+            if (!$activeSchedule) {
+                $activeSchedule = Schedule::where('is_active', true)->first();
+            }
+
+            $limitTime = $activeSchedule ? $activeSchedule->start_time : '06:30:00';
+            $totalSiswa = User::where('role', 'siswa')->count();
 
         // 1. Statistik Ringkasan
         $stats = [
             'hadir' => Attendance::where('date', $today)->whereIn('status', ['hadir', 'terlambat'])->count(),
             'terlambat' => Attendance::where('date', $today)
-                ->where(function ($q) use ($limitTime) {
-                    $q->where('status', 'terlambat')
-                        ->orWhere('time_in', '>', $limitTime);
-                })->count(),
+                ->where('status', 'terlambat')
+                ->count(),
             'izin_sakit' => Attendance::where('date', $today)->whereIn('status', ['izin', 'sakit', 'dispen'])->count(),
 
-            // LOGIKA ALPA BARU: 
-            // Jika libur, Alpa = 0. Jika sekolah, (Total - Absen).
+            // LOGIKA ALPA: Jika libur, Alpa = 0. Jika sekolah, (Total - Absen).
             'tidak_hadir' => $isHoliday ? 0 : max(0, $totalSiswa - Attendance::where('date', $today)->count()),
         ];
 
