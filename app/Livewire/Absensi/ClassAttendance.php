@@ -9,7 +9,7 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Flux\Flux;
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Exports\AttendanceClassExport; // Sesuaikan namespace Anda
+use App\Exports\AttendanceClassExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use App\Models\SchoolCalendar;
@@ -48,7 +48,9 @@ class ClassAttendance extends Component
                 $query->where('name', 'like', '%' . $this->search . '%');
             });
 
-        $totalSiswa = $baseQuery->count();
+        $totalSiswa = User::where('class_id', $this->class?->id ?? 0)
+            ->where('role', 'siswa')
+            ->count();
 
         $students = $baseQuery->with([
             'attendances' => function ($query) {
@@ -59,23 +61,24 @@ class ClassAttendance extends Component
         $stats = ['hadir' => 0, 'izin' => 0, 'terlambat' => 0, 'sakit' => 0, 'alpa' => 0, 'dispen' => 0];
 
         // Hitung statistik menggunakan data tanpa filter search agar akurat
-        $allStudents = User::where('class_id', $this->class?->id ?? 0)->where('role', 'siswa')->get();
-        foreach ($allStudents as $student) {
-            $attendance = $student->attendances()->whereDate('date', $this->selectedDate)->first();
-            if ($attendance) {
-                $stats[$attendance->status]++;
-            } elseif (!$isHoliday) {
-                $stats['alpa']++;
-            }
-        }
+        $allStudents = User::where('class_id', $this->class?->id ?? 0)
+            ->where('role', 'siswa')
+            ->with([
+                'attendances' => function ($query) {
+                    $query->whereDate('date', $this->selectedDate);
+                }
+            ])->get();
 
-        foreach ($students as $student) {
+        foreach ($allStudents as $student) {
             $attendance = $student->attendances->first();
 
             if ($attendance) {
-                $stats[$attendance->status]++;
+                // Pastikan status yang dihitung ada di dalam array $stats untuk menghindari error index
+                if (array_key_exists($attendance->status, $stats)) {
+                    $stats[$attendance->status]++;
+                }
             } else {
-                // HANYA tambah ke Alpa jika BUKAN hari libur
+                // Jika tidak ada data absensi dan bukan hari libur, otomatis masuk sebagai Alpa
                 if (!$isHoliday) {
                     $stats['alpa']++;
                 }
@@ -90,7 +93,7 @@ class ClassAttendance extends Component
             'totalSiswa' => $totalSiswa,
             'stats' => $stats,
             'persentase' => $persentase,
-            'isHoliday' => $isHoliday // Kirim ke view
+            'isHoliday' => $isHoliday 
         ]);
     }
 
