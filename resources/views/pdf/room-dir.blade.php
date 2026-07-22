@@ -31,7 +31,7 @@
             </td>
             <td class="school-info" style="border: none;">
                 <h2 style="margin: 0;">SMKN 7 BALEENDAH</h2>
-                <p style="margin: 0;">Jl. ... (Alamat Sekolah Anda) ...</p>
+                <p style="margin: 0;">Jl. Siliwangi No.Km.15, Manggahang, Kec. Baleendah, Kabupaten Bandung, Jawa Barat 40375</p>
                 <h3 style="margin: 10px 0 0 0;">DAFTAR INVENTARIS RUANGAN: {{ strtoupper($room->name) }}</h3>
             </td>
         </tr>
