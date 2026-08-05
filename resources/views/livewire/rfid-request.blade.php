@@ -16,7 +16,7 @@
     </div>
 
     <div class="mb-8 text-center">
-        <h2 class="text-2xl font-black text-zinc-900">Layanan Sarpras Mandiri</h2>
+        <h2 class="text-2xl font-black text-zinc-900">Layanan Permintaan Barang Habis Pakai</h2>
         <p class="text-zinc-500 text-sm">Silakan tap kartu RFID Anda untuk memulai permintaan</p>
     </div>
 

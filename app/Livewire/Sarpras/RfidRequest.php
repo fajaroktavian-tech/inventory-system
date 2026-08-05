@@ -39,17 +39,20 @@ class RfidRequest extends Component
 
         if ($user) {
             $this->userId = $user->id;
-            // Penting: Reset rfid_uid agar input box kosong dan siap untuk scan berikutnya nanti
+            // Reset rfid_uid agar input box kosong dan siap untuk scan berikutnya
             $this->rfid_uid = ''; 
 
             if ($user->role === 'siswa') {
                 $this->type = 'class';
                 $this->class_id = $user->class_id;
-                $this->step = 3;
             } else {
-                $this->type = 'room';
-                $this->step = 2; 
+                $this->type = 'room'; // atau sesuaikan jika tipe untuk guru berbeda di database Anda
+                $this->class_id = null;
             }
+            
+            // Guru maupun Siswa langsung ke step 3 (Pilih Barang) karena tidak pakai pilih ruangan
+            $this->step = 3;
+
         } else {
             session()->flash('error', 'Kartu RFID tidak terdaftar!');
             $this->rfid_uid = '';
@@ -126,6 +129,7 @@ class RfidRequest extends Component
                 foreach ($this->selectedItems as $itemData) {
                     $item = Item::lockForUpdate()->find($itemData['id']);
 
+                    // Jika guru yang meminta, stok langsung dikurangi (approved), jika siswa pending
                     if (!$isSiswa) {
                         $item->decrement('stock', $itemData['qty']);
                     }
@@ -148,7 +152,8 @@ class RfidRequest extends Component
             $this->step = 1;
 
         } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan sistem.');
+            // Tangkap error jika diperlukan untuk debugging (bisa dihapus/diganti log jika sudah normal)
+            session()->flash('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
     }
 

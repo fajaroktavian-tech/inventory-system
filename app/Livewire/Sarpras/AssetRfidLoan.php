@@ -12,7 +12,7 @@ use Livewire\Attributes\Computed;
 class AssetRfidLoan extends Component
 {
     public $step = 1;
-    public $rfid_uid = ''; // Samakan dengan BHP
+    public $rfid_uid = '';
     public $userId; 
     public $search_asset = '';
     public $selectedAsset = null;

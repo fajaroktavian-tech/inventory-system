@@ -67,7 +67,6 @@ window.addEventListener('trigger-print-all', event => {
 
 // Fungsi DIR tetap A4 karena berupa dokumen tabel
 window.addEventListener('trigger-print-dir', event => {
-    // ... (tetap gunakan kode Anda yang lama karena DIR memang harus A4) ...
 });
 
 window.addEventListener('trigger-print-dir', event => {
