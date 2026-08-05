@@ -8,6 +8,7 @@ use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
+use Flux\Flux;
 
 class AssetLoanManagement extends Component
 {
@@ -154,5 +155,50 @@ public function removeSelectedUser()
     {
         // Reset asset_id setiap kali melakukan pencarian baru agar tidak terjadi bentrok data
         $this->reset('asset_id');
+    }
+
+    public function exportPdf()
+    {
+        return redirect()->route('asset-loans.export.pdf');
+    }
+
+    // Fungsi Export Excel
+    public function exportExcel()
+    {
+        $fileName = 'rekap-peminjaman-aset-' . date('Y-m-d') . '.csv';
+        
+        $loans = AssetLoan::with(['asset.itemInfo', 'user'])->latest()->get();
+
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function() use ($loans) {
+            $file = fopen('php://output', 'w');
+            // Header CSV
+            fputcsv($file, ['No', 'Nama Peminjam', 'Role', 'Nama Aset', 'Serial Number', 'Tanggal Pinjam', 'Tenggat', 'Tanggal Kembali', 'Status', 'Catatan']);
+
+            foreach ($loans as $index => $loan) {
+                fputcsv($file, [
+                    $index + 1,
+                    $loan->user->name ?? '-',
+                    strtoupper($loan->user->role ?? '-'),
+                    $loan->asset->itemInfo->name ?? '-',
+                    $loan->asset->serial_number ?? '-',
+                    $loan->loan_date,
+                    $loan->due_date ?? '-',
+                    $loan->return_date ?? '-',
+                    $loan->status,
+                    $loan->notes ?? '-'
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

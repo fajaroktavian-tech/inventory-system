@@ -89,8 +89,8 @@
                     </flux:sidebar.item>
 
                     <!-- <flux:sidebar.item icon="computer-desktop" :href="route('attendance.gateway')" target="_blank">
-                                Buka Kios Absen
-                            </flux:sidebar.item> -->
+                                    Buka Kios Absen
+                                </flux:sidebar.item> -->
                 </flux:sidebar.group>
             @endif
         </flux:sidebar.nav>
@@ -151,7 +151,7 @@
         @endif
 
         {{-- SUB-NAVBAR: BARANG ASET --}}
-        @if(request()->routeIs(['asset-master.*', 'asset-registration.*', 'categories.*', 'rooms.*', 'asset-report']))
+        @if(request()->routeIs(['asset-master.*', 'asset-registration.*', 'categories.*', 'rooms.*', 'asset-report', 'admin.assets']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
                 <flux:navbar.item icon="rectangle-stack" :href="route('asset-master.index')"
                     :current="request()->routeIs('asset-master.index')" wire:navigate>Katalog Aset</flux:navbar.item>
@@ -164,6 +164,8 @@
                 </flux:navbar.item>
                 <flux:navbar.item icon="chart-bar" :href="route('asset-report')"
                     :current="request()->routeIs('asset-report')" wire:navigate>Rekap Aset</flux:navbar.item>
+                <flux:navbar.item icon="computer-desktop" :href="route('admin.assets')"
+                    :current="request()->routeIs('admin.assets')" wire:navigate>Monitoring Unit</flux:navbar.item>
             </flux:navbar>
         @endif
 

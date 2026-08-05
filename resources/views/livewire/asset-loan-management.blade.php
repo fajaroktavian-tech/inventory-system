@@ -4,7 +4,18 @@
 
     <div class="flex justify-between mt-8 mb-4">
         <flux:input wire:model.live="search" icon="magnifying-glass" placeholder="Cari peminjam..." class="max-w-xs" />
-        <flux:button variant="primary" icon="plus" wire:click="create">Catat Peminjaman</flux:button>
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            {{-- DROPDOWN EXPORT (EXCEL & PDF) --}}
+            <flux:dropdown>
+                <flux:button icon="arrow-down-tray" variant="subtle">Export</flux:button>
+                <flux:menu>
+                    <flux:menu.item icon="document-text" wire:click="exportPdf">Export PDF</flux:menu.item>
+                    <flux:menu.item icon="table-cells" wire:click="exportExcel">Export Excel</flux:menu.item>
+                </flux:menu>
+            </flux:dropdown>
+
+            <flux:button variant="primary" icon="plus" wire:click="create">Catat Peminjaman</flux:button>
+        </div>
     </div>
 
     @if (session()->has('message'))
@@ -16,6 +27,7 @@
             <flux:table.column>Peminjam</flux:table.column>
             <flux:table.column>Aset / SN</flux:table.column>
             <flux:table.column>Tgl Pinjam</flux:table.column>
+            <flux:table.column>Catatan</flux:table.column>
             <flux:table.column>Status</flux:table.column>
             <flux:table.column align="end">Aksi</flux:table.column>
         </flux:table.columns>
@@ -37,6 +49,11 @@
                             <p class="text-[10px] text-red-500 font-medium">Tempo:
                                 {{ \Carbon\Carbon::parse($loan->due_date)->format('d M Y') }}</p>
                         @endif
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <p class="text-xs text-zinc-600 dark:text-zinc-300 italic max-w-xs truncate" title="{{ $loan->notes }}">
+                            {{ $loan->notes ?: '-' }}
+                        </p>
                     </flux:table.cell>
                     <flux:table.cell>
                         <flux:badge size="sm" color="{{ $loan->status === 'active' ? 'blue' : 'green' }}" variant="subtle">

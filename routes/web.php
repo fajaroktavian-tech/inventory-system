@@ -35,10 +35,12 @@ use App\Models\Item;
 use App\Models\Room;
 use App\Models\Category;
 use App\Models\RequestModel;
+use App\Models\AssetLoan;
 use App\Livewire\ProdiManagement;
 use App\Http\Controllers\Sarpras\LandingController;
 use App\Http\Controllers\PrintController;
 use App\Livewire\HolidayManager;
+use App\Livewire\Sarpras\AssetIndex;
 
 Route::get('/', function () {
         return view('welcome');
@@ -121,6 +123,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/rooms', RoomManagement::class)->name('rooms.index');
         Route::get('/asset-report', AssetReport::class)->name('asset-report');
         Route::get('/pdf/room-dir/{room}', [PrintController::class, 'printRoomDir'])->name('print.room.dir');
+        Route::get('/admin/assets', AssetIndex::class)->name('admin.assets');
+
+        Route::get('/admin/asset-loans/export-pdf', function () {
+            $loans = AssetLoan::with(['asset.itemInfo', 'user'])->latest()->get();
+            return view('pdf.asset-loans-pdf', compact('loans'));
+        })->name('asset-loans.export.pdf');
 
 
         // Grup Manajemen Data Master (Admin Saja)
