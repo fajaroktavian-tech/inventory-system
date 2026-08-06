@@ -50,4 +50,16 @@ class Asset extends Model
         // Menghasilkan string SVG
         return $writer->writeString($this->serial_number);
     }
+
+    // Relasi ke semua riwayat peminjaman aset
+    public function loans()
+    {
+        return $this->hasMany(AssetLoan::class);
+    }
+
+    // Relasi khusus untuk peminjaman yang sedang aktif (status 'active')
+    public function activeLoan()
+    {
+        return $this->hasOne(AssetLoan::class)->where('status', 'active');
+    }
 }

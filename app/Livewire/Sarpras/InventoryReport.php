@@ -50,7 +50,7 @@ class InventoryReport extends Component
                 $q->where('category_id', $this->selectedStockCategory);
             })
             ->orderBy('stock', 'asc')
-            ->get();
+            ->paginate(10, ['*'], 'stockPage');
 
         // 2. Ambil data kategori untuk dropdown filter
         $categories = \App\Models\Category::orderBy('name')->get();
@@ -68,6 +68,16 @@ class InventoryReport extends Component
             'classes' => ClassModel::orderBy('name')->get(),
             'items' => Item::orderBy('name')->get(),
         ])->layout('layouts.app');
+    }
+
+    public function updatingSearchStockItem()
+    {
+        $this->resetPage('stockPage');
+    }
+
+    public function updatingSelectedStockCategory()
+    {
+        $this->resetPage('stockPage');
     }
     private function getOutboundLogs()
     {
@@ -89,7 +99,13 @@ class InventoryReport extends Component
                         // ATAU Cari berdasarkan Nama Kelas
                         ->orWhereHas('request.class', function ($cq) {
                         $cq->where('name', 'like', '%' . $this->searchOutbound . '%');
+                    })
+
+                        // ATAU Cari berdasarkan Catatan Permintaan
+                        ->orWhereHas('request', function ($rq) {
+                        $rq->where('notes', 'like', '%' . $this->searchOutbound . '%');
                     });
+
                 });
             })
             ->latest()
@@ -187,7 +203,7 @@ class InventoryReport extends Component
     public function exportExcel()
     {
         return Excel::download(
-            new InventoryExport($this->activeTab, $this->startDate, $this->endDate), 
+            new InventoryExport($this->activeTab, $this->startDate, $this->endDate),
             'Laporan-' . ucfirst($this->activeTab) . '-' . now()->format('Ymd') . '.xlsx'
         );
     }

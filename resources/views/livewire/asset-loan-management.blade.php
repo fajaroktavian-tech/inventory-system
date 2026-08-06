@@ -37,7 +37,12 @@
                 <flux:table.row :key="$loan->id">
                     <flux:table.cell>
                         <p class="font-medium">{{ $loan->user->name }}</p>
-                        <p class="text-[10px] text-zinc-500">{{ strtoupper($loan->user->role) }}</p>
+                        <p class="text-[10px] text-zinc-500">
+                            {{ strtoupper($loan->user->role) }}
+                            @if(strtolower($loan->user->role) === 'siswa' && optional($loan->user->class)->name)
+                                • {{ $loan->user->class->name }}
+                            @endif
+                        </p>
                     </flux:table.cell>
                     <flux:table.cell>
                         <p class="text-sm font-medium">{{ $loan->asset->itemInfo->name ?? 'Aset Terhapus' }}</p>
@@ -47,11 +52,13 @@
                         <p class="text-sm">{{ \Carbon\Carbon::parse($loan->loan_date)->format('d M Y') }}</p>
                         @if($loan->due_date && $loan->status === 'active')
                             <p class="text-[10px] text-red-500 font-medium">Tempo:
-                                {{ \Carbon\Carbon::parse($loan->due_date)->format('d M Y') }}</p>
+                                {{ \Carbon\Carbon::parse($loan->due_date)->format('d M Y') }}
+                            </p>
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>
-                        <p class="text-xs text-zinc-600 dark:text-zinc-300 italic max-w-xs truncate" title="{{ $loan->notes }}">
+                        <p class="text-xs text-zinc-600 dark:text-zinc-300 italic max-w-xs truncate"
+                            title="{{ $loan->notes }}">
                             {{ $loan->notes ?: '-' }}
                         </p>
                     </flux:table.cell>
@@ -88,35 +95,36 @@
             <flux:heading size="lg">Catat Peminjaman Baru</flux:heading>
 
             {{-- BAGIAN CARI ASET --}}
+            <!-- Bagian Modal Pencarian Peminjam -->
             <div class="relative">
-                <flux:label>Cari Aset</flux:label>
-                @if(!$selectedAsset)
-                    <flux:input wire:model.live.debounce.300ms="search_asset" icon="magnifying-glass"
-                        placeholder="Ketik nama aset atau No. Seri..." />
+                <flux:label>Peminjam</flux:label>
 
-                    @if(count($availableAssets) > 0)
+                @if(!$selectedUser)
+                    <flux:input wire:model.live.debounce.300ms="search_user" icon="magnifying-glass"
+                        placeholder="Ketik nama peminjam..." />
+
+                    @if(count($availableUsers) > 0)
                         <div
                             class="absolute z-50 w-full bg-white border border-zinc-200 rounded-xl shadow-xl mt-1 overflow-hidden">
-                            @foreach($availableAssets as $asset)
-                                <button wire:click="selectAsset({{ $asset->id }})"
-                                    class="w-full text-left p-3 hover:bg-zinc-50 flex justify-between items-center border-b border-zinc-50 last:border-0">
-                                    <div>
-                                        <p class="text-sm font-bold">{{ $asset->itemInfo->name }}</p>
-                                        <p class="text-[10px] text-zinc-400 font-medium">SN: {{ $asset->serial_number ?? '-' }}</p>
-                                    </div>
-                                    <flux:icon name="plus-circle" class="text-blue-600 size-5" />
+                            @foreach($availableUsers as $user)
+                                <button type="button" wire:click="selectUser({{ $user->id }})"
+                                    class="w-full text-left p-3 hover:bg-zinc-50 border-b border-zinc-50">
+                                    <p class="text-sm font-bold">{{ $user->name }}</p>
+                                    <p class="text-[10px] text-zinc-400">
+                                        {{ strtoupper($user->role) }}
+                                        @if(strtolower($user->role) === 'siswa' && optional($user->class)->name)
+                                            • {{ $user->class->name }}
+                                        @endif
+                                    </p>
                                 </button>
                             @endforeach
                         </div>
                     @endif
                 @else
-                    {{-- TAMPILAN JIKA ASET SUDAH DIPILIH --}}
-                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-bold text-blue-900">{{ $selectedAsset['name'] }}</p>
-                            <p class="text-[10px] text-blue-700">SN: {{ $selectedAsset['sn'] ?? '-' }}</p>
-                        </div>
-                        <button wire:click="removeSelectedAsset" class="text-red-500 hover:bg-red-50 p-1 rounded-md">
+                    <div class="p-3 bg-zinc-100 border border-zinc-200 rounded-xl flex items-center justify-between">
+                        <p class="text-sm font-bold text-zinc-800">{{ $selectedUser }}</p>
+                        <button type="button" wire:click="removeSelectedUser"
+                            class="text-red-500 hover:bg-red-50 p-1 rounded-md">
                             <flux:icon name="x-mark" size="sm" />
                         </button>
                     </div>
@@ -124,33 +132,35 @@
             </div>
 
             <div class="relative">
-    <flux:label>Peminjam</flux:label>
-    
-    @if(!$selectedUser)
-        <flux:input wire:model.live.debounce.300ms="search_user" icon="magnifying-glass"
-            placeholder="Ketik nama peminjam..." />
+                <flux:label>Peminjam</flux:label>
 
-        @if(count($availableUsers) > 0)
-            <div class="absolute z-50 w-full bg-white border border-zinc-200 rounded-xl shadow-xl mt-1 overflow-hidden">
-                @foreach($availableUsers as $user)
-                    <button type="button" wire:click="selectUser({{ $user->id }})"
-                        class="w-full text-left p-3 hover:bg-zinc-50 border-b border-zinc-50">
-                        <p class="text-sm font-bold">{{ $user->name }}</p>
-                        <p class="text-[10px] text-zinc-400">{{ strtoupper($user->role) }}</p>
-                    </button>
-                @endforeach
+                @if(!$selectedUser)
+                    <flux:input wire:model.live.debounce.300ms="search_user" icon="magnifying-glass"
+                        placeholder="Ketik nama peminjam..." />
+
+                    @if(count($availableUsers) > 0)
+                        <div
+                            class="absolute z-50 w-full bg-white border border-zinc-200 rounded-xl shadow-xl mt-1 overflow-hidden">
+                            @foreach($availableUsers as $user)
+                                <button type="button" wire:click="selectUser({{ $user->id }})"
+                                    class="w-full text-left p-3 hover:bg-zinc-50 border-b border-zinc-50">
+                                    <p class="text-sm font-bold">{{ $user->name }}</p>
+                                    <p class="text-[10px] text-zinc-400">{{ strtoupper($user->role) }}</p>
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+                @else
+                    {{-- TAMPILAN JIKA USER SUDAH DIPILIH --}}
+                    <div class="p-3 bg-zinc-100 border border-zinc-200 rounded-xl flex items-center justify-between">
+                        <p class="text-sm font-bold text-zinc-800">{{ $selectedUser }}</p>
+                        <button type="button" wire:click="removeSelectedUser"
+                            class="text-red-500 hover:bg-red-50 p-1 rounded-md">
+                            <flux:icon name="x-mark" size="sm" />
+                        </button>
+                    </div>
+                @endif
             </div>
-        @endif
-    @else
-        {{-- TAMPILAN JIKA USER SUDAH DIPILIH --}}
-        <div class="p-3 bg-zinc-100 border border-zinc-200 rounded-xl flex items-center justify-between">
-            <p class="text-sm font-bold text-zinc-800">{{ $selectedUser }}</p>
-            <button type="button" wire:click="removeSelectedUser" class="text-red-500 hover:bg-red-50 p-1 rounded-md">
-                <flux:icon name="x-mark" size="sm" />
-            </button>
-        </div>
-    @endif
-</div>
 
             <div class="grid grid-cols-2 gap-4">
                 <flux:input type="date" label="Tgl Pinjam" wire:model="loan_date" />

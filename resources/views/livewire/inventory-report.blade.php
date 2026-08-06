@@ -137,6 +137,11 @@
                             @endforelse
                         </flux:table.rows>
                     </flux:table>
+                    @if($inventoryStock->hasPages())
+                        <div class="p-4 border-t bg-zinc-50/50">
+                            {{ $inventoryStock->links() }}
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -177,6 +182,7 @@
                             <flux:table.column>Penerima</flux:table.column>
                             <flux:table.column>Nama Barang</flux:table.column>
                             <flux:table.column>Jumlah Keluar</flux:table.column>
+                            <flux:table.column>Catatan</flux:table.column>
                         </flux:table.columns>
 
                         <flux:table.rows>
@@ -211,10 +217,17 @@
                                         </div>
                                     </flux:table.cell>
 
-                                    <flux:table.cell align="right">
+                                    <flux:table.cell align="center">
                                         <span
                                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
                                             {{ $log->quantity_approved }} {{ $log->item->unit }}
+                                        </span>
+                                    </flux:table.cell>
+
+                                    {{-- Isi Kolom Catatan --}}
+                                    <flux:table.cell>
+                                        <span class="text-xs text-zinc-600 dark:text-zinc-300 italic max-w-xs truncate block" title="{{ $log->request->notes ?? '' }}">
+                                            {{ $log->request->notes ?: '-' }}
                                         </span>
                                     </flux:table.cell>
                                 </flux:table.row>

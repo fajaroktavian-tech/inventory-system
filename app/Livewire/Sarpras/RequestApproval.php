@@ -12,23 +12,39 @@ use Illuminate\Support\Facades\DB;
 class RequestApproval extends Component
 {
     use WithPagination;
-
     public $search = '';
-    
+    public $filterStatus = 'pending';
+
     // Untuk fitur edit jumlah saat approval
     public $editingId = null;
     public $editQuantities = [];
 
+    // Reset pagination ketika filter atau pencarian berubah
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+    public function updatedFilterStatus()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
+        $query = RequestModel::with(['student', 'class', 'room', 'details.item', 'approver'])
+            ->when($this->search, function ($q) {
+                $q->whereHas('student', function ($sub) {
+                    $sub->where('name', 'like', '%' . $this->search . '%');
+                });
+            });
+
+        // Terapkan filter status jika dipilih
+        if (!empty($this->filterStatus)) {
+            $query->where('status', $this->filterStatus);
+        }
+
         return view('livewire.request-approval', [
-            'requests' => RequestModel::with(['student', 'class', 'room', 'details.item'])
-                ->where('status', 'pending')
-                ->whereHas('student', function($q) {
-                    $q->where('name', 'like', '%'.$this->search.'%');
-                })
-                ->latest()
-                ->paginate(10)
+            'requests' => $query->latest()->paginate(10)
         ])->layout('layouts.app');
     }
 
@@ -46,10 +62,10 @@ class RequestApproval extends Component
         try {
             DB::transaction(function () use ($requestId) {
                 $request = RequestModel::findOrFail($requestId);
-                
+
                 foreach ($request->details as $detail) {
                     $item = Item::lockForUpdate()->find($detail->item_id);
-                    
+
                     // Ambil jumlah yang akan disetujui (bisa hasil edit atau default)
                     $qtyToApprove = $this->editQuantities[$detail->id] ?? $detail->quantity_requested;
 

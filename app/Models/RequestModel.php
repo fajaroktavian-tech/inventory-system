@@ -25,5 +25,10 @@ class RequestModel extends Model
     {
         return $this->belongsTo(Room::class, 'room_id');
     }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
     
 }

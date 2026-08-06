@@ -30,7 +30,7 @@
         <nav class="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8">
 
             <div class="flex lg:flex-1 items-center gap-3">
-                <img src="{{ asset('images/Logo SMKN 7 BE.png') }}" alt="Logo S7B" class="logo-s7b" />
+                <img src="{{ asset('images/LogoSMKN7BE.png') }}" alt="Logo S7B" class="logo-s7b" />
                 <div class="hidden md:block">
                     <p class="font-black text-sm leading-none uppercase">Sarpras <span
                             class="text-red-600">Digital</span></p>

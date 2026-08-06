@@ -8,6 +8,7 @@ use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Flux\Flux;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AssetIndex extends Component
 {
@@ -38,8 +39,8 @@ class AssetIndex extends Component
             'hilang' => Asset::where('status', 'hilang')->count(),
         ];
 
-        // 2. Query Data Aset dengan Filter & Pencarian
-        $assets = Asset::with(['itemInfo', 'room', 'pic'])
+        // relasi activeLoan.user (jika ada relasi peminjaman aktif ke user)
+        $assets = Asset::with(['itemInfo', 'room', 'pic', 'activeLoan.user'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('serial_number', 'like', '%' . $this->search . '%')
@@ -62,7 +63,7 @@ class AssetIndex extends Component
             'assets' => $assets,
             'rooms' => Room::orderBy('name')->get(),
             'users' => User::whereIn('role', ['guru', 'staff', 'admin'])->orderBy('name')->get(),
-        ])->layout('layouts.app'); // Sesuaikan layout admin Anda
+        ])->layout('layouts.app');
     }
 
     public function openEditModal($id)
@@ -96,5 +97,39 @@ class AssetIndex extends Component
 
         $this->isEditModalOpen = false;
         Flux::toast('Data aset berhasil diperbarui.');
+    }
+
+    // Fungsi Ekspor PDF untuk Monitor Unit Aset
+    public function exportPdf()
+    {
+        $assets = Asset::with(['itemInfo', 'room', 'pic', 'activeLoan.user'])
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('serial_number', 'like', '%' . $this->search . '%')
+                      ->orWhereHas('itemInfo', function ($sub) {
+                          $sub->where('name', 'like', '%' . $this->search . '%');
+                      });
+                });
+            })
+            ->when($this->filterStatus, function ($q) {
+                $q->where('status', $this->filterStatus);
+            })
+            ->when($this->filterCondition, function ($q) {
+                $q->where('condition', $this->filterCondition);
+            })
+            ->latest()
+            ->get();
+
+        $data = [
+            'title' => 'Laporan Monitoring Aset',
+            'date' => now()->format('d/m/Y'),
+            'assets' => $assets,
+        ];
+
+        $pdf = Pdf::loadView('pdf.asset-monitor-report', $data)->setPaper('a4', 'landscape');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->stream();
+        }, 'Laporan-Monitoring-Aset-' . now()->format('Ymd') . '.pdf');
     }
 }

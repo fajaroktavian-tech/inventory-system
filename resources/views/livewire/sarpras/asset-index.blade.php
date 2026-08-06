@@ -35,6 +35,20 @@
         <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
             <div class="flex flex-wrap flex-1 gap-3 w-full">
                 <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Cari nama barang atau serial number..." class="max-w-xs flex-1" />
+                <flux:dropdown>
+            <flux:button icon-trailing="chevron-down" variant="outline">
+                Eksport
+            </flux:button>
+            <flux:menu class="min-w-48">
+                <flux:menu.item wire:click="exportPdf" icon="document-text">
+                    Ekspor ke PDF (.pdf)
+                </flux:menu.item>
+                <flux:menu.separator />
+                <flux:menu.item icon="printer" onclick="window.print()">
+                    Cetak Halaman (Print)
+                </flux:menu.item>
+            </flux:menu>
+        </flux:dropdown>
                 
                 <flux:select wire:model.live="filterStatus" class="max-w-[160px]">
                     <option value="">Semua Status</option>
@@ -59,6 +73,7 @@
                 <flux:table.column>Nama Aset / SN</flux:table.column>
                 <flux:table.column>Lokasi Ruangan</flux:table.column>
                 <flux:table.column>Penanggung Jawab (PIC)</flux:table.column>
+                <flux:table.column>Peminjam / Pemegang</flux:table.column>
                 <flux:table.column>Kondisi</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
                 <flux:table.column>Aksi</flux:table.column>
@@ -75,6 +90,12 @@
                         <flux:table.cell>{{ $asset->room->name ?? '-' }}</flux:table.cell>
 
                         <flux:table.cell>{{ $asset->pic->name ?? '-' }}</flux:table.cell>
+
+                        <flux:table.cell>
+                            <span class="text-zinc-800 dark:text-zinc-200 font-medium">
+                                {{ $asset->activeLoan->user->name ?? '-' }}
+                            </span>
+                        </flux:table.cell>
 
                         <flux:table.cell>
                             @php

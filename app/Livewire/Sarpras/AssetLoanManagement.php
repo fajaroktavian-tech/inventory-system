@@ -23,18 +23,25 @@ class AssetLoanManagement extends Component
     public $selectedAsset = null;
 
     public function selectUser($id)
-{
-    $user = User::find($id);
-    $this->user_id = $user->id;
-    $this->selectedUser = $user->name . ' (' . strtoupper($user->role) . ')';
-    $this->search_user = ''; // Kosongkan pencarian
-}
+    {
+        $user = User::find($id);
+        $this->user_id = $user->id;
 
-public function removeSelectedUser()
-{
-    $this->user_id = null;
-    $this->selectedUser = null;
-}
+        // Tampilkan kelas jika rolenya siswa
+        $roleText = strtoupper($user->role);
+        if (strtolower($user->role) === 'siswa' && $user->class) {
+            $roleText .= ' - ' . $user->class->name;
+        }
+
+        $this->selectedUser = $user->name . ' (' . strtoupper($user->role) . ')';
+        $this->search_user = ''; // Kosongkan pencarian
+    }
+
+    public function removeSelectedUser()
+    {
+        $this->user_id = null;
+        $this->selectedUser = null;
+    }
     protected $rules = [
         'asset_id' => 'required',
         'user_id' => 'required',
@@ -59,31 +66,31 @@ public function removeSelectedUser()
         }
 
         $availableUsers = [];
-    if (strlen($this->search_user) > 1) {
-        $availableUsers = User::where('name', 'like', '%' . $this->search_user . '%')
-            ->limit(5)->get();
-    }
+        if (strlen($this->search_user) > 1) {
+            // Eager load studentClass agar data kelas terbawa
+            $availableUsers = User::with('class')
+                ->where('name', 'like', '%' . $this->search_user . '%')
+                ->limit(5)->get();
+        }
 
         return view('livewire.asset-loan-management', [
-            'loans' => AssetLoan::with(['asset.itemInfo', 'user'])
+            // Tambahkan 'user.studentClass' pada eager loading
+            'loans' => AssetLoan::with(['asset.itemInfo', 'user.class'])
                 ->where(function ($query) {
-                    // Cari berdasarkan Nama Peminjam
                     $query->whereHas('user', function ($q) {
                         $q->where('name', 'like', '%' . $this->search . '%');
                     })
-                        // ATAU Cari berdasarkan Nama Barang di Katalog Aset
                         ->orWhereHas('asset.itemInfo', function ($q) {
-                        $q->where('name', 'like', '%' . $this->search . '%');
-                    })
-                        // ATAU Cari berdasarkan Nomor Seri Aset
+                            $q->where('name', 'like', '%' . $this->search . '%');
+                        })
                         ->orWhereHas('asset', function ($q) {
-                        $q->where('serial_number', 'like', '%' . $this->search . '%');
-                    });
+                            $q->where('serial_number', 'like', '%' . $this->search . '%');
+                        });
                 })
                 ->latest()
                 ->paginate(10),
             'availableAssets' => $availableAssets,
-            'users' => User::orderBy('name')->get(),
+            'users' => User::with('class')->orderBy('name')->get(),
             'availableUsers' => $availableUsers,
         ])->layout('layouts.app');
     }
@@ -166,7 +173,7 @@ public function removeSelectedUser()
     public function exportExcel()
     {
         $fileName = 'rekap-peminjaman-aset-' . date('Y-m-d') . '.csv';
-        
+
         $loans = AssetLoan::with(['asset.itemInfo', 'user'])->latest()->get();
 
         $headers = [
@@ -177,7 +184,7 @@ public function removeSelectedUser()
             "Expires" => "0"
         ];
 
-        $callback = function() use ($loans) {
+        $callback = function () use ($loans) {
             $file = fopen('php://output', 'w');
             // Header CSV
             fputcsv($file, ['No', 'Nama Peminjam', 'Role', 'Nama Aset', 'Serial Number', 'Tanggal Pinjam', 'Tenggat', 'Tanggal Kembali', 'Status', 'Catatan']);
