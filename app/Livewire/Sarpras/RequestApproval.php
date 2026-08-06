@@ -100,8 +100,8 @@ class RequestApproval extends Component
     {
         RequestModel::findOrFail($requestId)->update([
             'status' => 'rejected',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
+            'approved_by' => auth()->id(), // Mencatat siapa yang menolak
+            'approved_at' => now(),       // Mencatat waktu penolakan
         ]);
         session()->flash('message', 'Permintaan telah ditolak.');
     }

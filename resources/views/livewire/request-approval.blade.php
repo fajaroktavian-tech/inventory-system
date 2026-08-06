@@ -2,15 +2,17 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <flux:heading size="xl">Manajemen Persetujuan Permintaan</flux:heading>
-            <flux:subheading>Kelola permintaan barang masuk dari siswa dan pantau riwayat keputusannya.</flux:subheading>
+            <flux:subheading>Kelola permintaan barang masuk dari siswa dan pantau riwayat keputusannya.
+            </flux:subheading>
         </div>
     </div>
 
     <!-- FILTER & PENCARIAN -->
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border shadow-sm">
         <div class="flex flex-wrap items-center gap-3 w-full">
-            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Cari nama siswa..." class="max-w-xs flex-1" />
-            
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Cari nama siswa..."
+                class="max-w-xs flex-1" />
+
             <flux:select wire:model.live="filterStatus" class="max-w-[180px]">
                 <option value="">Semua Status</option>
                 <option value="pending">Pending (Menunggu)</option>
@@ -32,7 +34,8 @@
             <div class="bg-white border rounded-xl shadow-sm p-5 hover:border-blue-300 transition">
                 <div class="flex justify-between items-start mb-4">
                     <div class="flex items-center gap-3">
-                        <div class="size-10 bg-zinc-100 rounded-full flex items-center justify-center font-bold text-blue-600 border">
+                        <div
+                            class="size-10 bg-zinc-100 rounded-full flex items-center justify-center font-bold text-blue-600 border">
                             {{ substr($request->student->name, 0, 1) }}
                         </div>
                         <div>
@@ -46,7 +49,7 @@
 
                     <!-- BADGE STATUS DINAMIS -->
                     @php
-                        $badgeColor = match($request->status) {
+                        $badgeColor = match ($request->status) {
                             'pending' => 'yellow',
                             'approved' => 'green',
                             'rejected' => 'red',
@@ -70,25 +73,29 @@
                             <tr>
                                 <th class="text-left pb-2">Nama Barang</th>
                                 <th class="text-center pb-2">Diminta</th>
-                                <th class="text-right pb-2">{{ $request->status == 'pending' ? 'Aksi Stok' : 'Disetujui' }}</th>
+                                <th class="text-right pb-2">{{ $request->status == 'pending' ? 'Aksi Stok' : 'Disetujui' }}
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y">
                             @foreach($request->details as $detail)
                                 <tr>
                                     <td class="py-2">{{ $detail->item->name }}</td>
-                                    <td class="py-2 text-center font-medium">{{ $detail->quantity_requested }} {{ $detail->item->unit }}</td>
+                                    <td class="py-2 text-center font-medium">{{ $detail->quantity_requested }}
+                                        {{ $detail->item->unit }}</td>
                                     <td class="py-2 text-right">
                                         @if($request->status == 'pending')
                                             @if($editingId == $request->id)
-                                                <input type="number" wire:model="editQuantities.{{ $detail->id }}" 
+                                                <input type="number" wire:model="editQuantities.{{ $detail->id }}"
                                                     class="w-16 text-right border rounded px-1 text-sm text-blue-600 focus:ring-1 focus:ring-blue-500">
                                             @else
                                                 <span class="text-zinc-400 italic">Sesuai permintaan</span>
                                             @endif
                                         @else
                                             <!-- Tampilkan hasil kuantitas yang disetujui untuk riwayat -->
-                                            <span class="font-bold text-zinc-700">{{ $detail->quantity_approved ?? $detail->quantity_requested }} {{ $detail->item->unit }}</span>
+                                            <span
+                                                class="font-bold text-zinc-700">{{ $detail->quantity_approved ?? $detail->quantity_requested }}
+                                                {{ $detail->item->unit }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -98,27 +105,36 @@
                 </div>
 
                 <!-- BAGIAN Kaki Kartu / Tombol Aksi -->
-                <div class="flex justify-between items-center text-xs text-zinc-400 pt-2 border-t">
+                <div
+                    class="flex flex-col md:flex-row justify-between items-start md:items-center text-xs text-zinc-500 pt-3 border-t gap-2">
                     <div>
                         @if($request->status != 'pending' && $request->approved_at)
-                            Diproses pada: {{ \Carbon\Carbon::parse($request->approved_at)->format('d M Y H:i') }}
+                            <span class="font-medium text-zinc-700">
+                                {{ $request->status == 'approved' ? 'Disetujui' : 'Ditolak' }} oleh
+                                <span class="text-blue-600">{{ $request->approver->name ?? 'Admin' }}</span>
+                                pada {{ \Carbon\Carbon::parse($request->approved_at)->format('d M Y H:i') }}
+                            </span>
                         @else
-                            <span>Status menunggu tindakan</span>
+                            <span class="italic text-zinc-400">Status menunggu tindakan</span>
                         @endif
                     </div>
 
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 self-end md:self-auto">
                         @if($request->status == 'pending')
                             @if($editingId == $request->id)
                                 <flux:button size="sm" variant="ghost" wire:click="$set('editingId', null)">Batal Edit</flux:button>
-                                <flux:button size="sm" color="blue" icon="check" wire:click="approve({{ $request->id }})">Setujui Hasil Edit</flux:button>
+                                <flux:button size="sm" color="blue" icon="check" wire:click="approve({{ $request->id }})">Setujui
+                                    Hasil Edit</flux:button>
                             @else
-                                <flux:button size="sm" variant="danger" color="red" wire:click="reject({{ $request->id }})" wire:confirm="Tolak permintaan ini?">Tolak</flux:button>
-                                <flux:button size="sm" variant="primary" color="yellow" icon="pencil-square" wire:click="startEdit({{ $request->id }})">Edit Qty</flux:button>
-                                <flux:button size="sm" variant="primary" color="green" icon="hand-thumb-up" wire:click="approve({{ $request->id }})">Setujui Langsung</flux:button>
+                                <flux:button size="sm" variant="danger" color="red" wire:click="reject({{ $request->id }})"
+                                    wire:confirm="Tolak permintaan ini?">Tolak</flux:button>
+                                <flux:button size="sm" variant="primary" color="yellow" icon="pencil-square"
+                                    wire:click="startEdit({{ $request->id }})">Edit Qty</flux:button>
+                                <flux:button size="sm" variant="primary" color="green" icon="hand-thumb-up"
+                                    wire:click="approve({{ $request->id }})">Setujui Langsung</flux:button>
                             @endif
                         @else
-                            <span class="italic text-zinc-500">Selesai diproses</span>
+                            <span class="italic text-zinc-400 font-medium">Selesai diproses</span>
                         @endif
                     </div>
                 </div>
