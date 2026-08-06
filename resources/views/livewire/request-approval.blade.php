@@ -9,11 +9,10 @@
 
     <!-- FILTER & PENCARIAN -->
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border shadow-sm">
-        <div class="flex flex-wrap items-center gap-3 w-full">
+        <div class="flex items-center gap-3 w-full md:w-auto flex-1">
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Cari nama siswa..."
-                class="max-w-xs flex-1" />
-
-            <flux:select wire:model.live="filterStatus" class="max-w-[180px]">
+                class="w-full md:max-w-xs" />
+            <flux:select wire:model.live="filterStatus" class="w-auto min-w-[160px] md:max-w-[180px]">
                 <option value="">Semua Status</option>
                 <option value="pending">Pending (Menunggu)</option>
                 <option value="approved">Disetujui</option>
