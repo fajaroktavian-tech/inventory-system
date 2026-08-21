@@ -64,10 +64,6 @@
                 </flux:menu>
             </flux:dropdown>
 
-            <flux:button variant="filled" icon="printer" x-on:click="$dispatch('trigger-print-all')">
-                Cetak Label
-            </flux:button>
-
             <div class="flex gap-2">
                 <flux:button icon="question-mark-circle" wire:click="$set('isAssetGuideOpen', true)" variant="filled">
                     Panduan</flux:button>
@@ -94,15 +90,17 @@
             @foreach($assets as $asset)
                 <flux:table.row :key="$asset->id">
                     <!-- <flux:table.cell>
-                                                                                                <div
-                                                                                                    class="bg-white p-1 inline-block rounded border shadow-sm cursor-pointer hover:scale-110 transition-transform">
-                                                                                                    {!! $asset->getQrCode() !!}
-                                                                                                </div>
-                                                                                            </flux:table.cell> -->
+                                                                                                        <div
+                                                                                                            class="bg-white p-1 inline-block rounded border shadow-sm cursor-pointer hover:scale-110 transition-transform">
+                                                                                                            {!! $asset->getQrCode() !!}
+                                                                                                        </div>
+                                                                                                    </flux:table.cell> -->
                     <flux:table.cell>
                         <p class="font-medium">{{ $asset->itemInfo->name }}</p>
                         <p class="text-xs text-zinc-500 italic">SN: {{ $asset->serial_number ?? 'N/A' }}</p>
-                        <p class="text-[10px] text-blue-600">BAST: {{ $asset->bast_date ? \Carbon\Carbon::parse($asset->bast_date)->format('d M Y') : 'N/A' }}</p>
+                        <p class="text-[10px] text-blue-600">BAST:
+                            {{ $asset->bast_date ? \Carbon\Carbon::parse($asset->bast_date)->format('d M Y') : 'N/A' }}
+                        </p>
                         <!-- <p class="text-[10px] text-blue-600">Masuk: {{ $asset->created_at->format('d M Y') }}</p> -->
                     </flux:table.cell>
                     <flux:table.cell>
@@ -242,7 +240,7 @@
             </div>
             {{-- ---------------- --}}
             <div class="grid grid-cols-2 gap-4">
-            <flux:input type="date" label="Tanggal BAST" wire:model="bast_date" />
+                <flux:input type="date" label="Tanggal BAST" wire:model="bast_date" />
                 <!-- <flux:input type="number" label="Tahun Perolehan" wire:model="acquisition_year" /> -->
                 <flux:input type="number" label="Harga (Rp)" wire:model="price" />
             </div>
@@ -273,30 +271,20 @@
     @foreach($assets as $asset)
         <flux:modal name="print-label-{{ $asset->id }}" class="md:w-[400px]">
             <div class="text-center p-4">
-                <flux:heading size="lg" class="mb-4">Label Inventaris</flux:heading>
-
-                {{-- Area Label yang akan diprint --}}
-                <div id="print-area-{{ $asset->id }}" class="hidden">
-                    <p class="header-school">SMKN 7 BALEENDAH</p>
-
-                    {!! $asset->getQrCode() !!}
-
-                    <p class="sn-text">{{ $asset->serial_number }}</p>
-                    <p>{{ Str::limit($asset->itemInfo->name, 25) }}</p>
-                    <p style="font-size: 5pt; font-weight: normal;">Tahun: {{ $asset->acquisition_year }}</p>
-                </div>
+                <flux:heading size="lg" class="mb-4">Label Inventaris Aset</flux:heading>
 
                 <div class="bg-white p-4 border rounded shadow-inner mb-4">
                     <div class="flex justify-center">{!! $asset->getQrCode() !!}</div>
                     <p class="font-bold mt-2 text-sm">{{ $asset->serial_number }}</p>
-                    <p class="text-xs">{{ $asset->itemInfo->name }}</p>
+                    <p class="text-xs text-zinc-600">{{ $asset->itemInfo->name }}</p>
+                    <p class="text-[10px] text-blue-600 font-medium">Ruangan: {{ $asset->room->name }}</p>
                 </div>
 
                 <div class="mt-6 flex gap-2">
                     <flux:spacer />
-                    <flux:button variant="primary"
-                        x-on:click="$dispatch('trigger-print', { id: 'print-area-{{ $asset->id }}' })">
-                        Cetak Thermal
+                    <!-- Tombol Download PDF Label -->
+                    <flux:button variant="primary" icon="arrow-down-tray" wire:click="downloadLabel({{ $asset->id }})">
+                        Download Gambar Label (PNG)
                     </flux:button>
                 </div>
             </div>
@@ -395,7 +383,8 @@
                 <div class="p-4 bg-zinc-50 rounded-lg">
                     <h4 class="font-bold text-zinc-900 mb-1">2. Mencari & Memfilter</h4>
                     <p>Gunakan kolom pencarian untuk mencari berdasarkan nama barang atau Serial Number. Gunakan filter
-                        <b>Ruangan</b> dan <b>Kondisi</b> untuk mempersempit daftar aset yang ditampilkan.</p>
+                        <b>Ruangan</b> dan <b>Kondisi</b> untuk mempersempit daftar aset yang ditampilkan.
+                    </p>
                 </div>
 
                 <!-- 3. Pelabelan -->
@@ -409,7 +398,8 @@
                 <div class="p-4 bg-zinc-50 rounded-lg">
                     <h4 class="font-bold text-zinc-900 mb-1">4. Laporan (Export)</h4>
                     <p>Klik tombol <b>Export</b> untuk mengunduh daftar aset saat ini ke format <b>Excel</b> atau
-                        <b>PDF</b> sesuai dengan filter yang sedang aktif.</p>
+                        <b>PDF</b> sesuai dengan filter yang sedang aktif.
+                    </p>
                 </div>
             </div>
 

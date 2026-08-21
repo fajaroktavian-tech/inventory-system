@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Exports\AssetExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AssetRegistration extends Component
 {
@@ -135,40 +136,40 @@ class AssetRegistration extends Component
             'serial_number' => $this->assetId ? 'nullable' : 'nullable|unique:assets,serial_number',
         ]);
 
-        try{
+        try {
 
-        DB::transaction(function () {
-            if ($this->assetId) {
-                // MODE EDIT
-                $asset = Asset::findOrFail($this->assetId);
-                $asset->update($this->getAssetData($this->serial_number ?: $asset->serial_number));
-            } else {
-                // MODE TAMBAH (Mendukung Qty Banyak)
-                for ($i = 0; $i < $this->qty; $i++) {
-                    $sn = $this->serial_number;
+            DB::transaction(function () {
+                if ($this->assetId) {
+                    // MODE EDIT
+                    $asset = Asset::findOrFail($this->assetId);
+                    $asset->update($this->getAssetData($this->serial_number ?: $asset->serial_number));
+                } else {
+                    // MODE TAMBAH (Mendukung Qty Banyak)
+                    for ($i = 0; $i < $this->qty; $i++) {
+                        $sn = $this->serial_number;
 
-                    // Logika SN Otomatis: Jika SN kosong ATAU qty lebih dari 1
-                    if (empty($sn) || $this->qty > 1) {
-                        $item = AssetItem::find($this->asset_item_id);
-                        $prefix = strtoupper(substr(str_replace(' ', '', $item->name), 0, 3));
-                        $rand = strtoupper(bin2hex(random_bytes(2)));
-                        // Format: KURS-20260531-RAND-1
-                        $rand = strtoupper(substr(md5(uniqid()), 0, 4));
-                        $sn = $prefix . '-' . now()->format('Ymd') . '-' . $rand . '-' . ($i + 1);
+                        // Logika SN Otomatis: Jika SN kosong ATAU qty lebih dari 1
+                        if (empty($sn) || $this->qty > 1) {
+                            $item = AssetItem::find($this->asset_item_id);
+                            $prefix = strtoupper(substr(str_replace(' ', '', $item->name), 0, 3));
+                            $rand = strtoupper(bin2hex(random_bytes(2)));
+                            // Format: KURS-20260531-RAND-1
+                            $rand = strtoupper(substr(md5(uniqid()), 0, 4));
+                            $sn = $prefix . '-' . now()->format('Ymd') . '-' . $rand . '-' . ($i + 1);
+                        }
+
+                        Asset::create($this->getAssetData($sn));
                     }
-
-                    Asset::create($this->getAssetData($sn));
                 }
-            }
-        });
-        $this->isModalOpen = false;
-        session()->flash('message', 'Unit Aset berhasil diregistrasi.');
-        $this->reset(['assetId', 'serial_number', 'qty']);
-    } catch (\Exception $e) {
-        // Log error ke storage/logs/laravel.log untuk tahu penyebab pastinya
-        \Log::error("Error saat simpan aset: " . $e->getMessage());
-        session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
-    }
+            });
+            $this->isModalOpen = false;
+            session()->flash('message', 'Unit Aset berhasil diregistrasi.');
+            $this->reset(['assetId', 'serial_number', 'qty']);
+        } catch (\Exception $e) {
+            // Log error ke storage/logs/laravel.log untuk tahu penyebab pastinya
+            \Log::error("Error saat simpan aset: " . $e->getMessage());
+            session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
+        }
     }
 
     private function getAssetData($sn)
@@ -300,6 +301,138 @@ class AssetRegistration extends Component
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->stream();
         }, 'Laporan-Aset-' . now()->format('Ymd') . '.pdf');
+    }
+
+    public function downloadLabel($id)
+    {
+        $asset = Asset::with(['itemInfo', 'room', 'pic'])->findOrFail($id);
+
+        // 1. Ambil URL QR Code
+        $qrData = $asset->serial_number ?? $asset->barcode_token;
+        $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' . urlencode($qrData);
+
+        $qrImageContent = @file_get_contents($qrApiUrl);
+        $qrImage = $qrImageContent ? imagecreatefromstring($qrImageContent) : null;
+
+        // 2. Buat Kanvas Gambar PNG (Resolusi Tajam 800x420)
+        $width = 800;
+        $height = 420;
+        $image = imagecreatetruecolor($width, $height);
+
+        // Definisi Warna
+        $white = imagecolorallocate($image, 255, 255, 255);
+        $black = imagecolorallocate($image, 0, 0, 0);
+        $gray = imagecolorallocate($image, 240, 240, 240);
+        $borderGray = imagecolorallocate($image, 200, 200, 200);
+        $darkGray = imagecolorallocate($image, 100, 100, 100);
+
+        // Background Putih & Border Luar
+        imagefilledrectangle($image, 0, 0, $width, $height, $white);
+        imagerectangle($image, 12, 12, $width - 12, $height - 12, $black);
+        imagerectangle($image, 13, 13, $width - 13, $height - 13, $black);
+
+        // Garis Pemisah Vertikal Putus-putus (Antara QR & Teks Detail)
+        for ($y = 35; $y < $height - 35; $y += 8) {
+            imageline($image, 280, $y, 280, $y + 4, $borderGray);
+        }
+
+        // 3. Tempel QR Code di Sisi Kiri
+        if ($qrImage) {
+            $qrResized = imagescale($qrImage, 210, 210);
+            imagecopy($image, $qrResized, 35, 60, 0, 0, 210, 210);
+            imagedestroy($qrResized);
+            imagedestroy($qrImage);
+        }
+
+        // Path Font TrueType Universal (Bisa gunakan Arial/Helvetica TTF jika ada, atau fallback bawaan GD)
+        // Jalur font umum bawaan OS/PHP
+        $fontPath = public_path('fonts/arial.ttf');
+        $useTtf = file_exists($fontPath);
+
+        // 4. Tulis Teks Serial Number di Bawah QR
+        $snText = $asset->serial_number ?? '-';
+        if ($useTtf) {
+            imagettftext($image, 11, 0, 45, 300, $black, $fontPath, $snText);
+        } else {
+            imagestring($image, 4, 45, 290, $snText, $black);
+        }
+
+        // 5. Informasi Utama di Sisi Kanan
+        $startX = 305;
+
+        // A. Nama Instansi / Sekolah
+        if ($useTtf) {
+            imagettftext($image, 16, 0, $startX, 55, $black, $fontPath, "SMKN 7 BALEENDAH");
+        } else {
+            imagestring($image, 5, $startX, 40, "SMKN 7 BALEENDAH", $black);
+        }
+        imageline($image, $startX, 68, $width - 35, 68, $black); // Garis bawah judul
+
+        // B. Nama Barang
+        $itemName = strtoupper($asset->itemInfo->name ?? '-');
+        if ($useTtf) {
+            imagettftext($image, 13, 0, $startX, 100, $black, $fontPath, substr($itemName, 0, 30));
+        } else {
+            imagestring($image, 4, $startX, 85, substr($itemName, 0, 32), $black);
+        }
+
+        // C. Merk / Spesifikasi
+        $brand = "Merk  : " . ($asset->itemInfo->brand ?? '-');
+        if ($useTtf) {
+            imagettftext($image, 11, 0, $startX, 130, $darkGray, $fontPath, substr($brand, 0, 38));
+        } else {
+            imagestring($image, 3, $startX, 118, substr($brand, 0, 40), $black);
+        }
+
+        // D. Serial Number Detail
+        $snDetail = "S/N   : " . ($asset->serial_number ?? '-');
+        if ($useTtf) {
+            imagettftext($image, 11, 0, $startX, 155, $darkGray, $fontPath, substr($snDetail, 0, 38));
+        } else {
+            imagestring($image, 3, $startX, 142, substr($snDetail, 0, 40), $black);
+        }
+
+        // E. Badge Lokasi / Ruangan (Kotak Abu-abu)
+        $roomName = "RUANG : " . strtoupper($asset->room->name ?? '-');
+        imagefilledrectangle($image, $startX, 175, $startX + 450, 215, $gray);
+        imagerectangle($image, $startX, 175, $startX + 450, 215, $borderGray);
+
+        if ($useTtf) {
+            imagettftext($image, 11, 0, $startX + 15, 202, $black, $fontPath, substr($roomName, 0, 35));
+        } else {
+            imagestring($image, 4, $startX + 15, 188, substr($roomName, 0, 35), $black);
+        }
+
+        // 6. TEMPILKAN LOGO SEKOLAH di Space Kosong Bawah (Kanan Bawah)
+        $logoPath = public_path('images/LogoSMKN7BE.png');
+        if (file_exists($logoPath)) {
+            $logoImage = @imagecreatefrompng($logoPath);
+            if ($logoImage) {
+                // Aktifkan alpha blending untuk gambar PNG transparan
+                imagealphablending($image, true);
+                imagesavealpha($image, true);
+
+                // Ukuran target logo yang diinginkan (misal: tinggi 120px)
+                $origW = imagesx($logoImage);
+                $origH = imagesy($logoImage);
+                $targetH = 120;
+                $targetW = (int) (($origW / $origH) * $targetH);
+
+                // Posisi di space kosong kanan bawah
+                $logoX = $width - $targetW - 45;
+                $logoY = 245;
+
+                // Tempel logo berskala presisi ke kanvas
+                imagecopyresampled($image, $logoImage, $logoX, $logoY, 0, 0, $targetW, $targetH, $origW, $origH);
+                imagedestroy($logoImage);
+            }
+        }
+
+        // 7. Output Gambar PNG
+        return response()->streamDownload(function () use ($image) {
+            imagepng($image);
+            imagedestroy($image);
+        }, 'Label-Aset-' . ($asset->serial_number ?? $asset->id) . '.png');
     }
 
 }

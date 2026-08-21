@@ -90,6 +90,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
         return view('pdf.absent-students', compact('absentStudents', 'today'));
     })->name('attendance.export-alpa')->middleware('auth');
+    
     Route::middleware(['can:create-request'])->group(function () {
         Route::get('/buat-permintaan', UserRequest::class)->name('user.request');
         Route::get('/riwayat-permintaan', RequestHistory::class)->name('request.history');
