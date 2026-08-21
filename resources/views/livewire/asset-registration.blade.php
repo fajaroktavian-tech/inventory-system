@@ -284,7 +284,7 @@
                     <flux:spacer />
                     <!-- Tombol Download PDF Label -->
                     <flux:button variant="primary" icon="arrow-down-tray" wire:click="downloadLabel({{ $asset->id }})">
-                        Download Gambar Label (PNG)
+                        Download Label
                     </flux:button>
                 </div>
             </div>
