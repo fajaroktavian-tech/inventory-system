@@ -105,4 +105,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(Attendance::class)->where('date', now()->toDateString());
     }
+
+    public function procurements()
+    {
+        return $this->hasMany(AssetProcurement::class);
+    }
+
+    public function maintenances()
+    {
+        return $this->hasMany(AssetMaintenance::class);
+    }
 }

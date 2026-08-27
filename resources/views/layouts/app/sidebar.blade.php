@@ -40,11 +40,17 @@
                         {{ __('Riwayat Permintaan') }}
                     </flux:sidebar.item>
                 @endif
+
+                {{-- MENU BARU: PENGAJUAN & PEMELIHARAAN (Bisa diakses semua user/guru/staff/admin) --}}
+                <flux:sidebar.item icon="clipboard-document-list" :href="route('sarpras.requests')"
+                    :current="request()->routeIs('sarpras.requests')" wire:navigate>
+                    Pengajuan & Perbaikan
+                </flux:sidebar.item>
             </flux:sidebar.group>
 
             {{-- MANAJEMEN INVENTARIS --}}
             @if(auth()->user()->role === 'admin' || auth()->user()->role === 'petugas' || auth()->user()->role === 'owner')
-                <flux:sidebar.group :heading="__('Inventaris')" class="grid mt-4">
+                <flux:sidebar.group :heading="__('Sarana Prasarana')" class="grid mt-4">
                     {{-- BARANG HABIS PAKAI (BHP) --}}
                     <flux:sidebar.item icon="archive-box" :href="route('items.index')"
                         :current="request()->routeIs(['items.*', 'items-in.*', 'report.*'])" wire:navigate>
@@ -89,8 +95,8 @@
                     </flux:sidebar.item>
 
                     <!-- <flux:sidebar.item icon="computer-desktop" :href="route('attendance.gateway')" target="_blank">
-                                    Buka Kios Absen
-                                </flux:sidebar.item> -->
+                                                    Buka Kios Absen
+                                                </flux:sidebar.item> -->
                 </flux:sidebar.group>
             @endif
         </flux:sidebar.nav>
@@ -138,6 +144,39 @@
             </flux:navbar>
         @endif
 
+        {{-- SUB-NAVBAR: SIRKULASI --}}
+        @if(request()->routeIs(['request.approval', 'asset-loans.index']))
+            <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
+                <flux:navbar.item icon="check-badge" :href="route('request.approval')"
+                    :current="request()->routeIs('request.approval')" wire:navigate>Persetujuan BHP
+
+                    @php $count = \App\Models\RequestModel::where('status', 'pending')->count(); @endphp
+                    @if($count > 0)
+                        <flux:badge color="red" size="sm" class="ml-auto" inset="right">{{ $count }}</flux:badge>
+                    @endif
+                </flux:navbar.item>
+                <flux:navbar.item icon="rectangle-stack" :href="route('asset-loans.index')"
+                    :current="request()->routeIs('asset-loans.index')" wire:navigate>Peminjaman Aset</flux:navbar.item>
+            </flux:navbar>
+        @endif
+
+        {{-- SUB-NAVBAR: PENGAJUAN & PEMELIHARAAN ASET & LAPORAN --}}
+        @if(request()->routeIs(['sarpras.requests', 'sarpras.reports']))
+            <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
+                <flux:navbar.item icon="clipboard-document-list" :href="route('sarpras.requests')"
+                    :current="request()->routeIs('sarpras.requests')" wire:navigate>
+                    Daftar Pengajuan & Perbaikan
+                </flux:navbar.item>
+
+                @if(in_array(auth()->user()->role, ['admin', 'petugas', 'owner']))
+                    <flux:navbar.item icon="document-chart-bar" :href="route('sarpras.reports')"
+                        :current="request()->routeIs('sarpras.reports')" wire:navigate>
+                        Laporan Pengajuan
+                    </flux:navbar.item>
+                @endif
+            </flux:navbar>
+        @endif
+
         {{-- SUB-NAVBAR: BARANG HABIS PAKAI (BHP) --}}
         @if(request()->routeIs(['items.*', 'items-in.*', 'report.*']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
@@ -151,7 +190,7 @@
         @endif
 
         {{-- SUB-NAVBAR: BARANG ASET --}}
-        @if(request()->routeIs(['asset-master.*', 'asset-registration.*', 'categories.*', 'rooms.*', 'asset-report', 'admin.assets']))
+        @if(request()->routeIs(['asset-master.*', 'asset-registration.*', 'categories.*', 'rooms.*', 'asset-report', 'admin.assets', 'assets.timeline.*']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
                 <flux:navbar.item icon="rectangle-stack" :href="route('asset-master.index')"
                     :current="request()->routeIs('asset-master.index')" wire:navigate>Katalog Aset</flux:navbar.item>
@@ -166,6 +205,8 @@
                     :current="request()->routeIs('asset-report')" wire:navigate>Rekap Aset</flux:navbar.item>
                 <flux:navbar.item icon="computer-desktop" :href="route('admin.assets')"
                     :current="request()->routeIs('admin.assets')" wire:navigate>Monitoring Unit</flux:navbar.item>
+                <flux:navbar.item icon="clock" :href="route('assets.timeline.index')"
+                    :current="request()->routeIs('assets.timeline.*')" wire:navigate>Riwayat Siklus Aset</flux:navbar.item>
             </flux:navbar>
         @endif
 
@@ -190,22 +231,6 @@
                     :current="request()->routeIs('holiday.index')" wire:navigate>
                     Hari Libur
                 </flux:navbar.item>
-            </flux:navbar>
-        @endif
-
-        {{-- SUB-NAVBAR: SIRKULASI --}}
-        @if(request()->routeIs(['request.approval', 'asset-loans.index']))
-            <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
-                <flux:navbar.item icon="check-badge" :href="route('request.approval')"
-                    :current="request()->routeIs('request.approval')" wire:navigate>Persetujuan BHP
-
-                    @php $count = \App\Models\RequestModel::where('status', 'pending')->count(); @endphp
-                    @if($count > 0)
-                        <flux:badge color="red" size="sm" class="ml-auto" inset="right">{{ $count }}</flux:badge>
-                    @endif
-                </flux:navbar.item>
-                <flux:navbar.item icon="rectangle-stack" :href="route('asset-loans.index')"
-                    :current="request()->routeIs('asset-loans.index')" wire:navigate>Peminjaman Aset</flux:navbar.item>
             </flux:navbar>
         @endif
 

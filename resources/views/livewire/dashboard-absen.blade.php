@@ -44,60 +44,7 @@
         </flux:card>
     </div>
 
-    <div x-data="{}" x-init="
-            // Pastikan DOM sudah siap
-            new ApexCharts(document.querySelector('#lineChart'), {
-                chart: { type: 'line', height: 250 },
-                series: [{ name: 'Siswa Hadir', data: {{ $lineChartData }} }],
-                xaxis: { categories: {!! $lineCategories !!} },
-                stroke: { curve: 'smooth' }
-            }).render();
-
-            new ApexCharts(document.querySelector('#barChart'), {
-                chart: { type: 'bar', height: 250 },
-                series: [{ name: 'Siswa Hadir', data: {{ $classCounts }} }],
-                xaxis: { categories: {!! $classNames !!} }
-            }).render();
-        ">
-        <div id="lineChart"></div>
-        <div id="barChart"></div>
-
-        <script>
-            document.addEventListener('livewire:navigated', () => {
-                // Inisialisasi Chart di sini
-                new ApexCharts(document.querySelector("#lineChart"), {
-                    chart: { type: 'line', height: 250 },
-                    series: [{ name: 'Siswa Hadir', data: {!! $lineChartData !!} }],
-                    xaxis: { categories: {!! $lineCategories !!} }
-                }).render();
-
-                new ApexCharts(document.querySelector("#barChart"), {
-                    chart: { type: 'bar', height: 250 },
-                    series: [{ name: 'Siswa Hadir', data: {!! $classCounts !!} }],
-                    xaxis: { categories: {!! $classNames !!} }
-                }).render();
-            });
-        </script>
-    </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {{-- Tabel Live Taps (5 Terakhir) --}}
-        <flux:card class="p-4">
-            <flux:heading size="sm" class="mb-4">Log Absensi Terbaru</flux:heading>
-            <div class="space-y-3">
-                @foreach($recentTaps as $tap)
-                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
-                        <div>
-                            <div class="font-bold text-sm">{{ $tap->student->name }}</div>
-                            <div class="text-xs text-zinc-500">{{ $tap->student->class->name ?? '-' }}</div>
-                        </div>
-                        <div class="text-xs font-mono font-bold text-emerald-600">
-                            {{ \Carbon\Carbon::parse($tap->time_in)->format('H:i') }}
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </flux:card>
 
         {{-- Tabel Siswa Terlambat --}}
         <flux:card class="p-4 border-l-4 border-rose-500">

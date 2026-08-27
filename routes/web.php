@@ -1,6 +1,9 @@
 <?php
 
 use App\Livewire\Absensi\ClassAttendance;
+use App\Livewire\Sarpras\AssetTimelineIndex;
+use App\Livewire\Sarpras\AssetTimelineShow;
+use App\Livewire\Sarpras\AssetReportIndex;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Sarpras\Dashboard;
 use App\Livewire\Sarpras\RfidRequest;
@@ -31,6 +34,7 @@ use App\Livewire\Absensi\AttendanceMonitor;
 use App\Livewire\Absensi\AttendanceReport;
 use App\Livewire\ClassAttendanceRecap;
 use App\Livewire\Absensi\PiketEntry;
+use App\Livewire\Sarpras\AssetRequestIndex;
 use App\Models\Item;
 use App\Models\Room;
 use App\Models\Category;
@@ -43,7 +47,7 @@ use App\Livewire\HolidayManager;
 use App\Livewire\Sarpras\AssetIndex;
 
 Route::get('/', function () {
-        return view('welcome');
+    return view('welcome');
 })->name('home');
 
 Route::get('/sarpras', function () {
@@ -56,7 +60,11 @@ Route::get('/sarpras', function () {
     $lastUpdate = $lastActivity ? $lastActivity->created_at->diffForHumans() : 'Tidak ada aktivitas';
 
     return view('sarpras.landing', compact(
-        'totalItems', 'todayRequests', 'totalRooms', 'totalCategories', 'lastUpdate'
+        'totalItems',
+        'todayRequests',
+        'totalRooms',
+        'totalCategories',
+        'lastUpdate'
     ));
 })->name('sarpras.landing');
 
@@ -78,22 +86,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', Dashboard::class)->name('dashboard');
     Route::get('/dashboard-asset', DashboardAsset::class)->name('dashboard-asset');
     Route::get('/dashboard-absen', DashboardAbsen::class)->name('dashboard.absen');
+    Route::get('/sarpras/requests', AssetRequestIndex::class)->name('sarpras.requests');
     Route::get('/absensi/export-alpa', function () {
         $today = Carbon\Carbon::today();
         $attendedIds = \App\Models\Attendance::where('date', $today)->pluck('user_id');
-        
+
         $absentStudents = \App\Models\User::where('role', 'siswa')
             ->where('is_active', true)
             ->whereNotIn('id', $attendedIds)
             ->with('class')
             ->get();
-    
+
         return view('pdf.absent-students', compact('absentStudents', 'today'));
     })->name('attendance.export-alpa')->middleware('auth');
-    
+
     Route::middleware(['can:create-request'])->group(function () {
         Route::get('/buat-permintaan', UserRequest::class)->name('user.request');
         Route::get('/riwayat-permintaan', RequestHistory::class)->name('request.history');
+    });
+
+    Route::middleware(['role:admin,petugas,owner'])->group(function () {
+        Route::get('/sarpras/reports', AssetReportIndex::class)->name('sarpras.reports');
     });
 
     Route::middleware(['auth', 'role:admin,kesiswaan'])->name('attendance.')->group(function () {
@@ -125,6 +138,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/asset-report', AssetReport::class)->name('asset-report');
         Route::get('/pdf/room-dir/{room}', [PrintController::class, 'printRoomDir'])->name('print.room.dir');
         Route::get('/admin/assets', AssetIndex::class)->name('admin.assets');
+        Route::get('/sarpras/asset-timeline', AssetTimelineIndex::class)->name('assets.timeline.index');
+        Route::get('/sarpras/asset-timeline/{asset}', AssetTimelineShow::class)->name('assets.timeline.show');
 
         Route::get('/admin/asset-loans/export-pdf', function () {
             $loans = AssetLoan::with(['asset.itemInfo', 'user'])->latest()->get();
