@@ -13,6 +13,7 @@ use App\Exports\AssetExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\AssetHistory;
 
 class AssetRegistration extends Component
 {
@@ -78,11 +79,9 @@ class AssetRegistration extends Component
                     })
                         ->orWhere('serial_number', 'like', '%' . $this->search . '%');
                 })
-                // Filter berdasarkan Ruangan (jika dipilih)
                 ->when($this->filterRoom, function ($query) {
                     $query->where('room_id', $this->filterRoom);
                 })
-                // Filter berdasarkan Kondisi (jika dipilih)
                 ->when($this->filterCondition, function ($query) {
                     $query->where('condition', $this->filterCondition);
                 })
@@ -91,18 +90,15 @@ class AssetRegistration extends Component
             'rooms' => Room::all(),
             'assetItems' => AssetItem::all(),
 
-            // Hasil pencarian katalog
             'filteredCatalogs' => strlen($this->search_catalog) > 1
                 ? AssetItem::where('name', 'like', '%' . $this->search_catalog . '%')
                     ->orWhere('brand', 'like', '%' . $this->search_catalog . '%')->get()
                 : [],
 
-            // Hasil pencarian ruangan
             'filteredRooms' => strlen($this->search_room) > 1
                 ? Room::where('name', 'like', '%' . $this->search_room . '%')->get()
                 : [],
 
-            // Hasil pencarian PIC
             'filteredPics' => strlen($this->search_pic) > 1
                 ? User::whereIn('role', ['guru', 'staff', 'admin'])
                     ->where('name', 'like', '%' . $this->search_pic . '%')->get()
@@ -132,41 +128,74 @@ class AssetRegistration extends Component
             'bast_date' => 'required|date',
             'acquisition_year' => 'required|numeric',
             'qty' => 'required|numeric|min:1',
-            // SN hanya unique jika diisi dan bukan sedang edit
             'serial_number' => $this->assetId ? 'nullable' : 'nullable|unique:assets,serial_number',
         ]);
 
         try {
-
             DB::transaction(function () {
                 if ($this->assetId) {
                     // MODE EDIT
                     $asset = Asset::findOrFail($this->assetId);
+                    $oldRoom = $asset->room_id;
+                    $oldCondition = $asset->condition;
+
                     $asset->update($this->getAssetData($this->serial_number ?: $asset->serial_number));
+
+                    // Catat log jika ruangan atau kondisi berubah saat edit
+                    if ($oldRoom != $this->room_id) {
+                        AssetHistory::create([
+                            'asset_id' => $asset->id,
+                            'user_id' => auth()->id(),
+                            'activity_type' => 'room_transfer',
+                            'title' => 'Perpindahan Ruangan (Edit Data)',
+                            'description' => 'Ruangan diperbarui melalui form registrasi.',
+                            'old_value' => Room::find($oldRoom)->name ?? '-',
+                            'new_value' => Room::find($this->room_id)->name ?? '-',
+                        ]);
+                    }
+
+                    if ($oldCondition != $this->condition) {
+                        AssetHistory::create([
+                            'asset_id' => $asset->id,
+                            'user_id' => auth()->id(),
+                            'activity_type' => 'condition_update',
+                            'title' => 'Perubahan Kondisi (Edit Data)',
+                            'description' => 'Kondisi diperbarui melalui form registrasi.',
+                            'old_value' => ucwords(str_replace('_', ' ', $oldCondition)),
+                            'new_value' => ucwords(str_replace('_', ' ', $this->condition)),
+                        ]);
+                    }
                 } else {
                     // MODE TAMBAH (Mendukung Qty Banyak)
                     for ($i = 0; $i < $this->qty; $i++) {
                         $sn = $this->serial_number;
 
-                        // Logika SN Otomatis: Jika SN kosong ATAU qty lebih dari 1
                         if (empty($sn) || $this->qty > 1) {
                             $item = AssetItem::find($this->asset_item_id);
                             $prefix = strtoupper(substr(str_replace(' ', '', $item->name), 0, 3));
-                            $rand = strtoupper(bin2hex(random_bytes(2)));
-                            // Format: KURS-20260531-RAND-1
                             $rand = strtoupper(substr(md5(uniqid()), 0, 4));
                             $sn = $prefix . '-' . now()->format('Ymd') . '-' . $rand . '-' . ($i + 1);
                         }
 
-                        Asset::create($this->getAssetData($sn));
+                        $newAsset = Asset::create($this->getAssetData($sn));
+
+                        // Catat log registrasi awal pertama kali
+                        AssetHistory::create([
+                            'asset_id' => $newAsset->id,
+                            'user_id' => auth()->id(),
+                            'activity_type' => 'registration',
+                            'title' => 'Registrasi Unit Aset Baru',
+                            'description' => 'Aset berhasil didaftarkan ke sistem dengan kondisi: ' . ucwords($newAsset->condition) . ' di ruangan ' . ($newAsset->room->name ?? '-'),
+                            'new_value' => ucwords($newAsset->condition),
+                        ]);
                     }
                 }
             });
+
             $this->isModalOpen = false;
             session()->flash('message', 'Unit Aset berhasil diregistrasi.');
             $this->reset(['assetId', 'serial_number', 'qty']);
         } catch (\Exception $e) {
-            // Log error ke storage/logs/laravel.log untuk tahu penyebab pastinya
             \Log::error("Error saat simpan aset: " . $e->getMessage());
             session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
         }

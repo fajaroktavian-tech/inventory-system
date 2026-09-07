@@ -10,9 +10,12 @@
     <flux:card class="space-y-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <flux:badge size="sm" color="zinc" class="mb-1">{{ $asset->itemInfo->category->name ?? 'Kategori' }}</flux:badge>
+                <flux:badge size="sm" color="zinc" class="mb-1">{{ $asset->itemInfo->category->name ?? 'Kategori' }}
+                </flux:badge>
                 <flux:heading size="xl">{{ $asset->itemInfo->name ?? 'Nama Aset' }}</flux:heading>
-                <flux:subheading>Nomor Seri: <span class="font-mono font-semibold text-zinc-800 dark:text-zinc-200">{{ $asset->serial_number ?? 'Tidak ada S/N' }}</span></flux:subheading>
+                <flux:subheading>Nomor Seri: <span
+                        class="font-mono font-semibold text-zinc-800 dark:text-zinc-200">{{ $asset->serial_number ?? 'Tidak ada S/N' }}</span>
+                </flux:subheading>
             </div>
             <div class="flex items-center gap-2">
                 <flux:badge color="{{ $asset->condition === 'baik' ? 'green' : 'red' }}">
@@ -39,10 +42,27 @@
             </div>
             <div>
                 <span class="text-zinc-500 block">Nilai Aset</span>
-                <span class="font-medium text-zinc-800 dark:text-zinc-100">Rp {{ number_format($asset->price, 0, ',', '.') }}</span>
+                <span class="font-medium text-zinc-800 dark:text-zinc-100">Rp
+                    {{ number_format($asset->price, 0, ',', '.') }}</span>
             </div>
         </div>
     </flux:card>
+
+    <!-- Bagian Tombol Aksi di samping informasi aset -->
+    <div class="flex flex-wrap items-center gap-2 pt-4">
+        <flux:button icon="arrow-path-rounded-square" size="sm" variant="primary"
+            wire:click="$dispatch('openTransferModal', { id: {{ $asset->id }} })">
+            Pindah Ruangan
+        </flux:button>
+        <flux:button icon="shield-exclamation" size="sm" variant="primary" color="blue"
+            wire:click="$dispatch('openConditionModal', { id: {{ $asset->id }} })">
+            Ubah Kondisi
+        </flux:button>
+        <flux:button icon="user-group" size="sm" variant="primary" color="orange"
+            wire:click="$dispatch('openPicModal', { id: {{ $asset->id }} })">
+            Ganti PIC
+        </flux:button>
+    </div>
 
     <!-- Garis Waktu (Timeline Audit Trail) -->
     <flux:card class="space-y-6">
@@ -52,17 +72,21 @@
             @forelse($timeline as $item)
                 <div class="relative pl-6">
                     <!-- Titik Ikon Timeline -->
-                    <div class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-600 flex items-center justify-center">
+                    <div
+                        class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-600 flex items-center justify-center">
                         <flux:icon name="{{ $item['icon'] }}" class="w-4 h-4 text-{{ $item['color'] }}-500" />
                     </div>
 
                     <!-- Konten Timeline -->
-                    <div class="bg-zinc-50 dark:bg-zinc-900/40 p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-700/60 space-y-1">
+                    <div
+                        class="bg-zinc-50 dark:bg-zinc-900/40 p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-700/60 space-y-1">
                         <div class="flex items-center justify-between">
                             <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $item['title'] }}</span>
-                            <span class="text-xs text-zinc-500 font-mono">{{ $item['date'] ? $item['date']->format('d M Y, H:i') : '-' }}</span>
+                            <span
+                                class="text-xs text-zinc-500 font-mono">{{ $item['date'] ? $item['date']->format('d M Y, H:i') : '-' }}</span>
                         </div>
-                        <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ $item['description'] }}</p>
+
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">{!! $item['description'] !!}</p>
                     </div>
                 </div>
             @empty
@@ -70,4 +94,5 @@
             @endforelse
         </div>
     </flux:card>
+    @livewire('sarpras.asset-action-modal')
 </div>

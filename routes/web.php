@@ -45,10 +45,13 @@ use App\Http\Controllers\Sarpras\LandingController;
 use App\Http\Controllers\PrintController;
 use App\Livewire\HolidayManager;
 use App\Livewire\Sarpras\AssetIndex;
+use App\Livewire\AttendanceRecapByClass;
 
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+Route::get('/absensi/monitoring', AttendanceMonitor::class)->name('monitor');
 
 Route::get('/sarpras', function () {
     // Ambil data yang diperlukan
@@ -109,9 +112,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/sarpras/reports', AssetReportIndex::class)->name('sarpras.reports');
     });
 
+    //Admin dan Kesiswaan
     Route::middleware(['auth', 'role:admin,kesiswaan'])->name('attendance.')->group(function () {
-        Route::get('/absensi/monitoring', AttendanceMonitor::class)->name('monitor');
         Route::get('/absensi/rekap', AttendanceReport::class)->name('report');
+        Route::get('/attendance/recap-class', AttendanceRecapByClass::class)->name('recapby.class');
     });
 
     // 2. Akses Wali Kelas (Hanya untuk kelasnya sendiri)

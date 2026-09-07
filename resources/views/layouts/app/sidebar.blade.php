@@ -82,21 +82,18 @@
                 <flux:sidebar.group :heading="__('Absensi')" class="grid mt-4">
                     {{-- Navigasi Landing Page Dinamis Menghindari Akses 403 --}}
                     @php
-                        $attendanceRoute = 'attendance.monitor';
-                        if (auth()->user()->role === 'walikelas')
+                        $attendanceRoute = 'attendance.recapby.class'; // Default aman untuk admin/kesiswaan
+                        if (auth()->user()->role === 'walikelas') {
                             $attendanceRoute = 'attendance.class';
-                        if (auth()->user()->role === 'piket')
+                        } elseif (auth()->user()->role === 'piket') {
                             $attendanceRoute = 'attendance.piket';
+                        }
                     @endphp
 
                     <flux:sidebar.item icon="finger-print" :href="route($attendanceRoute)"
                         :current="request()->routeIs(['attendance.*'])" wire:navigate>
                         Manajemen Absensi
                     </flux:sidebar.item>
-
-                    <!-- <flux:sidebar.item icon="computer-desktop" :href="route('attendance.gateway')" target="_blank">
-                                                    Buka Kios Absen
-                                                </flux:sidebar.item> -->
                 </flux:sidebar.group>
             @endif
         </flux:sidebar.nav>
@@ -234,14 +231,15 @@
             </flux:navbar>
         @endif
 
-        {{-- SUB-NAVBAR: ABSENSI (SEKARANG SUDAH DI SINI) --}}
+        {{-- SUB-NAVBAR: ABSENSI --}}
         @if(request()->routeIs(['attendance.*']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
                 {{-- Akses Kesiswaan & Admin --}}
                 @if(in_array(auth()->user()->role, ['admin', 'kesiswaan']))
-                    <flux:navbar.item icon="chart-bar" :href="route('attendance.monitor')"
-                        :current="request()->routeIs('attendance.monitor')" wire:navigate>
-                        Monitoring Real-time
+                    
+                    <flux:navbar.item icon="chart-pie" :href="route('attendance.recapby.class')"
+                        :current="request()->routeIs('attendance.recapby.class')" wire:navigate>
+                        Rekapitulasi Kelas
                     </flux:navbar.item>
                     <flux:navbar.item icon="document-text" :href="route('attendance.report')"
                         :current="request()->routeIs('attendance.report')" wire:navigate>
@@ -254,12 +252,6 @@
                     <flux:navbar.item icon="users" :href="route('attendance.class')"
                         :current="request()->routeIs('attendance.class')" wire:navigate>
                         Absensi Kelas
-                    </flux:navbar.item>
-
-                    {{-- TAMBAHKAN MENU INI --}}
-                    <flux:navbar.item icon="document-chart-bar" :href="route('attendance.recap.class')"
-                        :current="request()->routeIs('attendance.recap.class')" wire:navigate>
-                        Rekap Absensi Kelas
                     </flux:navbar.item>
                 @endif
 

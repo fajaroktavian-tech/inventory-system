@@ -62,4 +62,9 @@ class Asset extends Model
     {
         return $this->hasOne(AssetLoan::class)->where('status', 'active');
     }
+
+    public function histories()
+    {
+        return $this->hasMany(AssetHistory::class)->latest();
+    }
 }

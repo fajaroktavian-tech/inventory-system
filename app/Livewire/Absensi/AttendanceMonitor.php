@@ -72,9 +72,9 @@ class AttendanceMonitor extends Component
             ->latest()
             ->paginate(10);
 
-        return view('livewire.attendance-monitor', [
-            'stats' => $stats,
-            'latestLogs' => $latestLogs
-        ]);
+            return view('livewire.attendance-monitor', [
+                'stats' => $stats,
+                'latestLogs' => $latestLogs
+            ])->layout('layouts.guest-monitor-absen'); // <-- Gunakan layout publik di sini
     }
 }
