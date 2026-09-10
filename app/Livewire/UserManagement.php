@@ -7,13 +7,18 @@ use Flux\Flux;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Hash;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 class UserManagement extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
+    
 
     public $search = '';
     public $userId, $name, $username, $email, $role, $password,$rfid_uid,$class_id;
+    public $avatar, $new_avatar;
+    public $selectedRole = '';
     public $isModalOpen = false;
 
     public function mount()
@@ -25,17 +30,28 @@ class UserManagement extends Component
 
     public function render()
     {
+        $users = User::query()
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%')
+                      ->orWhere('username', 'like', '%' . $this->search . '%');
+                });
+            })
+            ->when($this->selectedRole, function ($query) {
+                $query->where('role', $this->selectedRole);
+            })
+            ->latest()
+            ->paginate(10);
+
         return view('livewire.user-management', [
-            'users' => User::where('name', 'like', '%'.$this->search.'%')
-                        ->orWhere('username', 'like', '%'.$this->search.'%')
-                        ->latest()
-                        ->paginate(10)
+            'users' => $users
         ])->layout('layouts.app');
     }
 
     public function create()
     {
-        $this->reset(['name', 'username', 'email', 'role', 'password', 'userId', 'rfid_uid']);
+        // Reset termasuk variabel avatar
+        $this->reset(['name', 'username', 'email', 'role', 'password', 'userId', 'rfid_uid', 'class_id', 'avatar', 'new_avatar']);
         $this->role = 'guru'; // Set default role
         $this->isModalOpen = true;
     }
@@ -50,6 +66,8 @@ class UserManagement extends Component
         $this->role = $user->role;
         $this->rfid_uid = $user->rfid_uid;
         $this->class_id = $user->class_id;
+        $this->avatar = $user->avatar; // Simpan path avatar lama
+        $this->new_avatar = null;
         $this->isModalOpen = true;
     }
 
@@ -62,17 +80,28 @@ class UserManagement extends Component
             'role' => 'required|in:admin,petugas,owner,guru,staff,siswa,kesiswaan,walikelas,piket',
             'password' => $this->userId ? 'nullable|min:6' : 'required|min:6',
             'class_id' => 'nullable|exists:class_models,id',
+            'new_avatar' => 'nullable|image|max:1024', // Validasi file gambar maks 0,5MB
         ]);
 
-        User::updateOrCreate(['id' => $this->userId], [
+        $data = [
             'name' => $this->name,
             'username' => $this->username,
             'email' => $this->email,
             'role' => $this->role,
-            'rfid_uid'=>$this->rfid_uid,
+            'rfid_uid' => $this->rfid_uid,
             'password' => $this->password ? Hash::make($this->password) : User::find($this->userId)->password,
             'class_id' => in_array($this->role, ['walikelas', 'siswa']) ? $this->class_id : null,
-        ]);
+        ];
+
+        // Handle upload avatar baru
+        if ($this->new_avatar) {
+            if ($this->avatar) {
+                Storage::disk('public')->delete($this->avatar); // Hapus foto lama jika ada
+            }
+            $data['avatar'] = $this->new_avatar->store('avatars', 'public');
+        }
+
+        User::updateOrCreate(['id' => $this->userId], $data);
 
         $this->isModalOpen = false;
         session()->flash('message', 'Data Berhasil Disimpan.');
@@ -81,6 +110,10 @@ class UserManagement extends Component
     public function delete($id)
     {
         if($id !== auth()->id()){
+            $user = User::find($id);
+            if ($user && $user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
             User::destroy($id);
         }
     }

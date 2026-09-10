@@ -7,7 +7,7 @@
     <div class="flex justify-center gap-4 mb-8">
         <a href="{{ route('rfid.request') }}"
             class="px-6 py-2 rounded-full font-bold text-sm transition-all {{ request()->routeIs('rfid.request') ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-zinc-500 border border-zinc-200' }}">
-            Barang Habis Pakai
+            Permintaan
         </a>
         <a href="{{ route('kios-aset') }}"
             class="px-6 py-2 rounded-full font-bold text-sm transition-all {{ request()->routeIs('kios-aset') ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-zinc-500 border border-zinc-200' }}">

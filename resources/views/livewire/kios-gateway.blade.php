@@ -12,7 +12,7 @@
                 <div class="bg-red-50 p-6 rounded-full mb-6 group-hover:bg-red-100 transition-colors">
                     <flux:icon name="archive-box" class="size-20 text-red-600" />
                 </div>
-                <h2 class="text-2xl font-black text-zinc-900 uppercase">Barang Habis Pakai</h2>
+                <h2 class="text-2xl font-black text-zinc-900 uppercase">Permintaan</h2>
                 <p class="text-zinc-500 text-sm mt-2 font-medium italic">(Spidol, Kertas, Tinta, dll)</p>
             </a>
 

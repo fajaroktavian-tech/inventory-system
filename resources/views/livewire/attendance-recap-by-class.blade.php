@@ -14,6 +14,11 @@
             <div class="w-64">
                 <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Cari nama kelas..." />
             </div>
+            <div>
+                <flux:button wire:click="export" variant="primary" icon="arrow-down-tray" class="bg-emerald-600 hover:bg-emerald-700 text-white">
+                    Export Excel
+                </flux:button>
+            </div>
         </div>
     </div>
 

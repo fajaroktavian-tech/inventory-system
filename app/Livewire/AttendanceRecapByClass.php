@@ -8,6 +8,8 @@ use App\Models\SchoolCalendar;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Carbon\Carbon;
+use App\Exports\AttendanceRecapClassExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AttendanceRecapByClass extends Component
 {
@@ -115,5 +117,12 @@ class AttendanceRecapByClass extends Component
         return view('livewire.attendance-recap-by-class', [
             'classes' => $recapData
         ])->layout('layouts.app');
+    }
+
+    public function export()
+    {
+        $fileName = 'rekap-absensi-kelas-' . $this->selectedDate . '.xlsx';
+        
+        return Excel::download(new AttendanceRecapClassExport($this->selectedDate, $this->search), $fileName);
     }
 }

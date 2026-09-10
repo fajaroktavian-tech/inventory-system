@@ -12,31 +12,6 @@
             <flux:button wire:click="exportPdf" icon="printer" variant="primary">Cetak PDF</flux:button>
         </div>
     </div>
-
-    <!-- Filter & Kontrol Laporan -->
-    <flux:card class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Pilihan Jenis Laporan -->
-            <div>
-                <flux:select wire:model.live="reportType" label="Jenis Laporan">
-                    <option value="procurement">Pengadaan Barang (Baru)</option>
-                    <option value="maintenance">Perbaikan / Pemeliharaan Aset</option>
-                </flux:select>
-            </div>
-
-            <!-- Tanggal Mulai -->
-            <div>
-                <flux:input type="date" wire:model.live="startDate" label="Dari Tanggal" />
-            </div>
-
-            <!-- Tanggal Selesai -->
-            <div>
-                <flux:input type="date" wire:model.live="endDate" label="Sampai Tanggal" />
-            </div>
-        </div>
-    </flux:card>
-
-    <!-- Kartu Statistik Ringkasan -->
     <!-- Kartu Statistik Ringkasan -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Total Data -->
@@ -86,6 +61,29 @@
         <flux:icon name="currency-dollar" class="w-10 h-10 text-emerald-600" />
     </flux:card>
     @endif
+
+    <!-- Filter & Kontrol Laporan -->
+    <flux:card class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Pilihan Jenis Laporan -->
+            <div>
+                <flux:select wire:model.live="reportType" label="Jenis Laporan">
+                    <option value="procurement">Pengadaan Barang (Baru)</option>
+                    <option value="maintenance">Perbaikan / Pemeliharaan Aset</option>
+                </flux:select>
+            </div>
+
+            <!-- Tanggal Mulai -->
+            <div>
+                <flux:input type="date" wire:model.live="startDate" label="Dari Tanggal" />
+            </div>
+
+            <!-- Tanggal Selesai -->
+            <div>
+                <flux:input type="date" wire:model.live="endDate" label="Sampai Tanggal" />
+            </div>
+        </div>
+    </flux:card>
 
     <!-- Tabel Data Laporan -->
     <flux:card class="overflow-x-auto">
