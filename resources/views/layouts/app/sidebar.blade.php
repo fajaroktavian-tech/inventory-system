@@ -248,10 +248,14 @@
                 @endif
 
                 {{-- Akses Wali Kelas --}}
-                @if(auth()->user()->role === 'walikelas' || auth()->user()->role === 'admin')
+                @if(auth()->user()->role === 'walikelas')
                     <flux:navbar.item icon="users" :href="route('attendance.class')"
                         :current="request()->routeIs('attendance.class')" wire:navigate>
                         Absensi Kelas
+                    </flux:navbar.item>
+                    <flux:navbar.item icon="users" :href="route('attendance.recap.class')"
+                        :current="request()->routeIs('attendance.recap.class')" wire:navigate>
+                        Rekap Absensi Kelas
                     </flux:navbar.item>
                 @endif
 
