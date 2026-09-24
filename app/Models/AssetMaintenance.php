@@ -18,4 +18,9 @@ class AssetMaintenance extends Model
     {
         return $this->belongsTo(Asset::class);
     }
+
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
+    }
 }

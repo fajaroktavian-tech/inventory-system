@@ -13,7 +13,7 @@
             class="h-full w-auto brightness-90 object-contain">
             </div>
             <div>
-                <h1 class="text-xl font-black text-white tracking-tight uppercase leading-none">KIOS ABSENSI DIGITAL
+                <h1 class="text-xl font-black text-white tracking-tight uppercase leading-none">ABSENSI DIGITAL
                 </h1>
                 <p class="text-zinc-200 font-bold text-xs mt-1 uppercase tracking-widest">Gate Terminal</p>
             </div>

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AssetItem extends Model
 {
-    protected $fillable = ['category_id', 'name', 'brand', 'specification'];
+    protected $fillable = ['category_id', 'name', 'brand', 'specification','image'];
 
     public function category() {
         return $this->belongsTo(Category::class);

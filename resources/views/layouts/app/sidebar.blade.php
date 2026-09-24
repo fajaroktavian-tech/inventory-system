@@ -41,10 +41,21 @@
                     </flux:sidebar.item>
                 @endif
 
-                {{-- MENU BARU: PENGAJUAN & PEMELIHARAAN (Bisa diakses semua user/guru/staff/admin) --}}
+                {{-- MENU BARU: PENGAJUAN & PEMELIHARAAN DENGAN BADGE NOTIFIKASI --}}
                 <flux:sidebar.item icon="clipboard-document-list" :href="route('sarpras.requests')"
                     :current="request()->routeIs('sarpras.requests')" wire:navigate>
                     Pengajuan & Perbaikan
+
+                    @php
+                        $pendingProcurements = \App\Models\AssetProcurement::where('status', 'pending')->count();
+                        $pendingMaintenances = \App\Models\AssetMaintenance::where('status', 'pending')->count();
+                        $totalPendingSarpras = $pendingProcurements + $pendingMaintenances;
+                    @endphp
+
+                    @if($totalPendingSarpras > 0)
+                        <flux:badge color="red" size="sm" class="ml-auto" inset="right">{{ $totalPendingSarpras }}
+                        </flux:badge>
+                    @endif
                 </flux:sidebar.item>
             </flux:sidebar.group>
 
@@ -236,7 +247,7 @@
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
                 {{-- Akses Kesiswaan & Admin --}}
                 @if(in_array(auth()->user()->role, ['admin', 'kesiswaan']))
-                    
+
                     <flux:navbar.item icon="chart-pie" :href="route('attendance.recapby.class')"
                         :current="request()->routeIs('attendance.recapby.class')" wire:navigate>
                         Rekapitulasi Kelas

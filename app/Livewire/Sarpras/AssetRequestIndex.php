@@ -8,23 +8,28 @@ use App\Models\AssetMaintenance;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Room;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 class AssetRequestIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
     public $assetSearch = '';
 
     public $activeTab = 'procurement'; // Pilihan tab: 'procurement' (Aset/BHP) atau 'maintenance' (Perbaikan)
     public $search = '';
     public $filterStatus = '';
 
-    // Properti Form Pengadaan (Procurement)
+    // Properti Form Pengadaan
     public $procurementId, $type = 'aset', $item_name, $qty = 1, $estimated_price, $reason;
+    public $photoProcurement;
+public $photoMaintenance;
 
     // Properti Form Perbaikan (Maintenance)
-    public $maintenanceId, $asset_id, $damage_description;
-
+    public $maintenanceId, $maintenance_type = 'asset', $asset_id, $facility_name, $room_id, $damage_description;
     public $isModalOpen = false;
+    public $isGuideOpen = false;
 
     public function updatedSearch()
     {
@@ -54,13 +59,14 @@ class AssetRequestIndex extends Component
             })
             ->latest();
 
-        // Query Perbaikan (Maintenance)
-        $maintenancesQuery = AssetMaintenance::with(['user', 'asset.itemInfo', 'asset.room'])
+        // Query Perbaikan diubah agar bisa mencari berdasarkan facility_name atau room
+        $maintenancesQuery = AssetMaintenance::with(['user', 'asset.itemInfo', 'asset.room', 'room'])
             ->when(!$user->isAdmin() && !$user->isPetugas(), function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
             ->where(function ($q) {
                 $q->where('damage_description', 'like', '%' . $this->search . '%')
+                    ->orWhere('facility_name', 'like', '%' . $this->search . '%')
                     ->orWhereHas('asset.itemInfo', function ($sub) {
                         $sub->where('name', 'like', '%' . $this->search . '%');
                     });
@@ -71,7 +77,6 @@ class AssetRequestIndex extends Component
             ->latest();
 
         $assetsQuery = Asset::with('itemInfo', 'room')
-            ->whereIn('condition', ['rusak_ringan', 'rusak_berat'])
             ->when($this->assetSearch, function ($q) {
                 $q->where(function ($sub) {
                     $sub->where('serial_number', 'like', '%' . $this->assetSearch . '%')
@@ -88,14 +93,29 @@ class AssetRequestIndex extends Component
             'procurements' => $this->activeTab === 'procurement' ? $procurementsQuery->paginate(10) : [],
             'maintenances' => $this->activeTab === 'maintenance' ? $maintenancesQuery->paginate(10) : [],
             'assetsList' => $assetsQuery->limit(20)->get(),
+            'roomsList' => Room::all(), // Kirim data ruangan untuk pilihan fasilitas umum
         ])->layout('layouts.app');
     }
-
     public function openModal($tab = null)
     {
-        $this->reset(['procurementId', 'maintenanceId', 'item_name', 'qty', 'estimated_price', 'reason', 'asset_id', 'damage_description', 'assetSearch']);
+        $this->reset([
+            'procurementId', 
+            'maintenanceId', 
+            'item_name', 
+            'qty', 
+            'estimated_price', 
+            'reason', 
+            'asset_id', 
+            'damage_description', 
+            'assetSearch',
+            'photoProcurement',
+            'photoMaintenance'
+        ]);
+        
         $this->qty = 1;
         $this->type = 'aset';
+        $this->maintenance_type = 'asset'; // Opsional: pastikan default maintenance juga aman
+        
         if ($tab) {
             $this->activeTab = $tab;
         }
@@ -110,7 +130,13 @@ class AssetRequestIndex extends Component
             'qty' => 'required|integer|min:1',
             'estimated_price' => 'nullable|numeric',
             'reason' => 'required|string',
+            'photoProcurement' => 'nullable|image|max:2048', 
         ]);
+
+        $photoPath = null;
+        if ($this->photoProcurement) {
+            $photoPath = $this->photoProcurement->store('procurements', 'public');
+        }
 
         AssetProcurement::create([
             'user_id' => Auth::id(),
@@ -120,6 +146,7 @@ class AssetRequestIndex extends Component
             'estimated_price' => $this->estimated_price ?? 0,
             'reason' => $this->reason,
             'status' => 'pending',
+            'photo' => $photoPath,
         ]);
 
         $this->isModalOpen = false;
@@ -129,21 +156,32 @@ class AssetRequestIndex extends Component
     public function saveMaintenance()
     {
         $this->validate([
-            'asset_id' => 'required|exists:assets,id',
+            'maintenance_type' => 'required|in:asset,facility',
+            'asset_id' => 'required_if:maintenance_type,asset|nullable|exists:assets,id',
+            'facility_name' => 'required_if:maintenance_type,facility|nullable|string|max:255',
+            'room_id' => 'required_if:maintenance_type,facility|nullable|exists:rooms,id',
             'damage_description' => 'required|string',
+            'photoMaintenance' => 'nullable|image|max:2048', // Batas ukuran 2MB
         ]);
+
+        $photoPath = null;
+        if ($this->photoMaintenance) {
+            $photoPath = $this->photoMaintenance->store('maintenances', 'public');
+        }
 
         AssetMaintenance::create([
             'user_id' => Auth::id(),
-            'asset_id' => $this->asset_id,
+            'asset_id' => $this->maintenance_type === 'asset' ? $this->asset_id : null,
+            'facility_name' => $this->maintenance_type === 'facility' ? $this->facility_name : null,
+            'room_id' => $this->maintenance_type === 'facility' ? $this->room_id : null,
             'damage_description' => $this->damage_description,
+            'photo' => $photoPath, // <-- Simpan path foto
             'status' => 'pending',
         ]);
 
         $this->isModalOpen = false;
         session()->flash('message', 'Laporan perbaikan/pemeliharaan berhasil dikirim.');
     }
-
     // Aksi untuk Admin / Petugas mengubah status
     public function updateStatus($id, $status, $type = 'procurement')
     {

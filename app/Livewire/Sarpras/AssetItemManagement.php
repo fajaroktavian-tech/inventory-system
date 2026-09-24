@@ -6,14 +6,17 @@ use App\Models\AssetItem;
 use App\Models\Category;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 class AssetItemManagement extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads; // Perbaikan: Cukup satu kali
 
     public $search = '';
     public $itemId, $name, $category_id, $brand, $specification;
     public $search_category = '';
+    public $image, $new_image;
     public $selectedCategoryName = null;
     public $isCatalogGuideOpen = false;
     public $isModalOpen = false;
@@ -23,6 +26,7 @@ class AssetItemManagement extends Component
         'category_id' => 'required|exists:categories,id',
         'brand' => 'nullable',
         'specification' => 'nullable',
+        'new_image' => 'nullable|image|max:1024',
     ];
 
     public function render()
@@ -33,7 +37,6 @@ class AssetItemManagement extends Component
                 ->orWhere('brand', 'like', '%' . $this->search . '%')
                 ->latest()->paginate(10),
 
-            // Tambahkan filteredCategories
             'filteredCategories' => strlen($this->search_category) > 1
                 ? Category::where('name', 'like', '%' . $this->search_category . '%')->get()
                 : []
@@ -42,7 +45,7 @@ class AssetItemManagement extends Component
 
     public function create()
     {
-        $this->reset(['itemId', 'name', 'category_id', 'brand', 'specification', 'search_category', 'selectedCategoryName']);
+        $this->reset(['itemId', 'name', 'category_id', 'brand', 'specification', 'image', 'new_image', 'search_category', 'selectedCategoryName']);
         $this->isModalOpen = true;
     }
 
@@ -50,12 +53,26 @@ class AssetItemManagement extends Component
     {
         $this->validate();
 
-        AssetItem::updateOrCreate(['id' => $this->itemId], [
+        // 1. Siapkan data dasar yang akan disimpan
+        $data = [
             'name' => $this->name,
             'category_id' => $this->category_id,
             'brand' => $this->brand,
             'specification' => $this->specification,
-        ]);
+        ];
+
+        // 2. Handle Upload Foto Baru (jika user mengunggah foto baru)
+        if ($this->new_image) {
+            // Hapus foto lama di storage jika ada foto sebelumnya
+            if ($this->image) {
+                Storage::disk('public')->delete($this->image);
+            }
+            // Simpan foto baru ke folder 'asset-items' pada disk 'public'
+            $data['image'] = $this->new_image->store('asset-items', 'public');
+        }
+
+        // 3. Simpan atau perbarui data ke database
+        AssetItem::updateOrCreate(['id' => $this->itemId], $data);
 
         $this->isModalOpen = false;
         session()->flash('message', $this->itemId ? 'Master Aset diperbarui.' : 'Master Aset ditambahkan.');
@@ -68,14 +85,23 @@ class AssetItemManagement extends Component
         $this->name = $item->name;
         $this->category_id = $item->category_id;
         $this->brand = $item->brand;
-        $this->selectedCategoryName = $item->category->name;
+        $this->selectedCategoryName = $item->category->name ?? null;
         $this->specification = $item->specification;
+        $this->image = $item->image; // Menyimpan path gambar lama ke properti component
+        $this->new_image = null;
         $this->isModalOpen = true;
     }
 
     public function delete($id)
     {
-        AssetItem::destroy($id);
+        $item = AssetItem::find($id);
+        if ($item) {
+            // Hapus file fisik dari storage jika ada
+            if ($item->image) {
+                Storage::disk('public')->delete($item->image);
+            }
+            $item->delete();
+        }
         session()->flash('message', 'Master Aset dihapus.');
     }
 
