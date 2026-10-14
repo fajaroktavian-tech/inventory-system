@@ -76,7 +76,7 @@
                 <flux:table.column>Peminjam / Pemegang</flux:table.column>
                 <flux:table.column>Kondisi</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
-                <flux:table.column>Aksi</flux:table.column>
+                <!-- <flux:table.column>Aksi</flux:table.column> -->
             </flux:table.columns>
 
             <flux:table.rows>
@@ -122,9 +122,9 @@
                             <flux:badge :color="$statusColor" size="sm" inset="right">{{ strtoupper($asset->status) }}</flux:badge>
                         </flux:table.cell>
 
-                        <flux:table.cell>
+                        <!-- <flux:table.cell>
                             <flux:button variant="ghost" size="sm" icon="pencil-square" wire:click="openEditModal({{ $asset->id }})" />
-                        </flux:table.cell>
+                        </flux:table.cell> -->
                     </flux:table.row>
                 @empty
                     <flux:table.row>

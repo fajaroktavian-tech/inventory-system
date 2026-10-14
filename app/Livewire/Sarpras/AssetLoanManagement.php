@@ -27,14 +27,13 @@ class AssetLoanManagement extends Component
         $user = User::find($id);
         $this->user_id = $user->id;
 
-        // Tampilkan kelas jika rolenya siswa
         $roleText = strtoupper($user->role);
         if (strtolower($user->role) === 'siswa' && $user->class) {
             $roleText .= ' - ' . $user->class->name;
         }
 
         $this->selectedUser = $user->name . ' (' . strtoupper($user->role) . ')';
-        $this->search_user = ''; // Kosongkan pencarian
+        $this->search_user = ''; 
     }
 
     public function removeSelectedUser()
@@ -42,8 +41,9 @@ class AssetLoanManagement extends Component
         $this->user_id = null;
         $this->selectedUser = null;
     }
+
     protected $rules = [
-        'asset_id' => 'required',
+        'selectedAsset' => 'required',
         'user_id' => 'required',
         'loan_date' => 'required|date',
         'due_date' => 'nullable|date|after_or_equal:loan_date',
@@ -51,7 +51,14 @@ class AssetLoanManagement extends Component
 
     public function render()
     {
-        // Logika pencarian aset di dalam modal (tetap sama)
+        // 1. Hitung Statistik Ringkasan Peminjaman
+        $stats = [
+            'total' => AssetLoan::count(),
+            'active' => AssetLoan::where('status', 'active')->count(),
+            'returned' => AssetLoan::where('status', 'returned')->count(),
+        ];
+
+        // 2. Logika pencarian aset di dalam modal
         $availableAssets = [];
         if (strlen($this->search_asset) > 1) {
             $availableAssets = Asset::with('itemInfo')
@@ -60,44 +67,42 @@ class AssetLoanManagement extends Component
                     $q->whereHas('itemInfo', function ($query) {
                         $query->where('name', 'like', '%' . $this->search_asset . '%');
                     })
-                        ->orWhere('serial_number', 'like', '%' . $this->search_asset . '%');
+                    ->orWhere('serial_number', 'like', '%' . $this->search_asset . '%');
                 })
                 ->limit(5)->get();
         }
 
         $availableUsers = [];
         if (strlen($this->search_user) > 1) {
-            // Eager load studentClass agar data kelas terbawa
             $availableUsers = User::with('class')
                 ->where('name', 'like', '%' . $this->search_user . '%')
                 ->limit(5)->get();
         }
 
         return view('livewire.asset-loan-management', [
-            // Tambahkan 'user.studentClass' pada eager loading
+            'stats' => $stats,
             'loans' => AssetLoan::with(['asset.itemInfo', 'user.class'])
                 ->where(function ($query) {
                     $query->whereHas('user', function ($q) {
                         $q->where('name', 'like', '%' . $this->search . '%');
                     })
-                        ->orWhereHas('asset.itemInfo', function ($q) {
-                            $q->where('name', 'like', '%' . $this->search . '%');
-                        })
-                        ->orWhereHas('asset', function ($q) {
-                            $q->where('serial_number', 'like', '%' . $this->search . '%');
-                        });
+                    ->orWhereHas('asset.itemInfo', function ($q) {
+                        $q->where('name', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('asset', function ($q) {
+                        $q->where('serial_number', 'like', '%' . $this->search . '%');
+                    });
                 })
                 ->latest()
                 ->paginate(10),
             'availableAssets' => $availableAssets,
-            'users' => User::with('class')->orderBy('name')->get(),
             'availableUsers' => $availableUsers,
         ])->layout('layouts.app');
     }
 
     public function create()
     {
-        $this->reset(['loanId', 'asset_id', 'user_id', 'loan_date', 'due_date', 'notes']);
+        $this->reset(['loanId', 'asset_id', 'user_id', 'loan_date', 'due_date', 'notes', 'selectedAsset', 'selectedUser', 'search_asset', 'search_user']);
         $this->loan_date = date('Y-m-d');
         $this->isModalOpen = true;
     }
@@ -107,10 +112,10 @@ class AssetLoanManagement extends Component
         $asset = Asset::with('itemInfo')->find($id);
         $this->selectedAsset = [
             'id' => $asset->id,
-            'name' => $asset->itemInfo->name,
-            'sn' => $asset->serial_number
+            'name' => $asset->itemInfo->name ?? 'Aset',
+            'sn' => $asset->serial_number ?? '-'
         ];
-        $this->search_asset = ''; // Kosongkan pencarian setelah pilih
+        $this->search_asset = ''; 
     }
 
     public function removeSelectedAsset()
@@ -120,11 +125,7 @@ class AssetLoanManagement extends Component
 
     public function store()
     {
-        $this->validate([
-            'selectedAsset' => 'required',
-            'user_id' => 'required',
-            'loan_date' => 'required|date',
-        ]);
+        $this->validate();
 
         DB::transaction(function () {
             AssetLoan::create([
@@ -143,25 +144,19 @@ class AssetLoanManagement extends Component
         $this->reset(['selectedAsset', 'user_id', 'notes']);
         session()->flash('message', 'Peminjaman berhasil dicatat.');
     }
+
     public function returnAsset($id)
     {
         $loan = AssetLoan::findOrFail($id);
 
-        // Update data peminjaman
         $loan->update([
             'return_date' => date('Y-m-d'),
             'status' => 'returned'
         ]);
 
-        // Kembalikan status aset menjadi 'tersedia'
         Asset::find($loan->asset_id)->update(['status' => 'tersedia']);
 
         session()->flash('message', 'Aset telah dikembalikan.');
-    }
-    public function updatedAssetSearch()
-    {
-        // Reset asset_id setiap kali melakukan pencarian baru agar tidak terjadi bentrok data
-        $this->reset('asset_id');
     }
 
     public function exportPdf()
@@ -169,11 +164,9 @@ class AssetLoanManagement extends Component
         return redirect()->route('asset-loans.export.pdf');
     }
 
-    // Fungsi Export Excel
     public function exportExcel()
     {
         $fileName = 'rekap-peminjaman-aset-' . date('Y-m-d') . '.csv';
-
         $loans = AssetLoan::with(['asset.itemInfo', 'user'])->latest()->get();
 
         $headers = [
@@ -186,7 +179,6 @@ class AssetLoanManagement extends Component
 
         $callback = function () use ($loans) {
             $file = fopen('php://output', 'w');
-            // Header CSV
             fputcsv($file, ['No', 'Nama Peminjam', 'Role', 'Nama Aset', 'Serial Number', 'Tanggal Pinjam', 'Tenggat', 'Tanggal Kembali', 'Status', 'Catatan']);
 
             foreach ($loans as $index => $loan) {

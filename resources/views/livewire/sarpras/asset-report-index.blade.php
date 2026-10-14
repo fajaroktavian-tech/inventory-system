@@ -119,13 +119,28 @@
                             </td>
                             <td class="p-3 text-zinc-600 dark:text-zinc-400">{{ $row->qty }}</td>
                             <td class="p-3 text-zinc-600 dark:text-zinc-400">Rp {{ number_format($row->estimated_price * $row->qty, 0, ',', '.') }}</td>
-                        @else
-                            <td class="p-3">
-                                <div class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $row->asset->itemInfo->name ?? 'Aset Tidak Ditemukan' }}</div>
-                                <div class="text-xs text-zinc-500">S/N: {{ $row->asset->serial_number ?? '-' }} | Ruang: {{ $row->asset->room->name ?? '-' }}</div>
-                            </td>
-                            <td class="p-3 text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{{ $row->damage_description }}</td>
-                        @endif
+                            @else
+    <td class="p-3">
+        @if($row->asset_id && $row->asset)
+            <!-- Jika yang dilaporkan adalah Aset Inventaris -->
+            <div class="font-semibold text-zinc-900 dark:text-zinc-100">
+                {{ $row->asset->itemInfo->name ?? 'Aset' }}
+            </div>
+            <div class="text-xs text-zinc-500">
+                S/N: {{ $row->asset->serial_number ?? '-' }} | Ruang: {{ $row->asset->room->name ?? '-' }}
+            </div>
+        @else
+            <!-- Jika yang dilaporkan adalah Fasilitas / Gedung -->
+            <div class="font-semibold text-blue-600 dark:text-blue-400">
+                Fasilitas: {{ $row->facility_name ?? '-' }}
+            </div>
+            <div class="text-xs text-zinc-500">
+                Ruang: {{ $row->room->name ?? '-' }}
+            </div>
+        @endif
+    </td>
+    <td class="p-3 text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{{ $row->damage_description }}</td>
+@endif
 
                         <td class="p-3 whitespace-nowrap">
                             @if($row->status === 'approved' || $row->status === 'repaired')

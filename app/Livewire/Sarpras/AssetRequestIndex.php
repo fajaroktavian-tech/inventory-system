@@ -24,7 +24,7 @@ class AssetRequestIndex extends Component
     // Properti Form Pengadaan
     public $procurementId, $type = 'aset', $item_name, $qty = 1, $estimated_price, $reason;
     public $photoProcurement;
-public $photoMaintenance;
+    public $photoMaintenance;
 
     // Properti Form Perbaikan (Maintenance)
     public $maintenanceId, $maintenance_type = 'asset', $asset_id, $facility_name, $room_id, $damage_description;
@@ -76,7 +76,12 @@ public $photoMaintenance;
             })
             ->latest();
 
+        // Query untuk pencarian aset di modal perbaikan (Dibatasi untuk Guru/Staff)
         $assetsQuery = Asset::with('itemInfo', 'room')
+            ->when(!$user->isAdmin() && !$user->isPetugas(), function ($q) use ($user) {
+                // Guru/Staff hanya bisa memilih aset yang PIC-nya adalah diri mereka sendiri
+                $q->where('pic_id', $user->id);
+            })
             ->when($this->assetSearch, function ($q) {
                 $q->where(function ($sub) {
                     $sub->where('serial_number', 'like', '%' . $this->assetSearch . '%')
@@ -99,23 +104,23 @@ public $photoMaintenance;
     public function openModal($tab = null)
     {
         $this->reset([
-            'procurementId', 
-            'maintenanceId', 
-            'item_name', 
-            'qty', 
-            'estimated_price', 
-            'reason', 
-            'asset_id', 
-            'damage_description', 
+            'procurementId',
+            'maintenanceId',
+            'item_name',
+            'qty',
+            'estimated_price',
+            'reason',
+            'asset_id',
+            'damage_description',
             'assetSearch',
             'photoProcurement',
             'photoMaintenance'
         ]);
-        
+
         $this->qty = 1;
         $this->type = 'aset';
         $this->maintenance_type = 'asset'; // Opsional: pastikan default maintenance juga aman
-        
+
         if ($tab) {
             $this->activeTab = $tab;
         }
@@ -130,7 +135,7 @@ public $photoMaintenance;
             'qty' => 'required|integer|min:1',
             'estimated_price' => 'nullable|numeric',
             'reason' => 'required|string',
-            'photoProcurement' => 'nullable|image|max:2048', 
+            'photoProcurement' => 'nullable|image|max:2048',
         ]);
 
         $photoPath = null;

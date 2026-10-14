@@ -522,7 +522,7 @@
 
                 <div class="lg:col-span-1">
                     <div class="flex items-center gap-3 mb-6">
-                        <img src="{{ asset('images/Logo SMKN 7 BE.png') }}" alt="Logo S7B" class="h-12 w-auto" />
+                        <img src="{{ asset('images/LogoSMKN7BE.png') }}" alt="Logo S7B" class="h-12 w-auto" />
                         <div>
                             <p class="font-black text-sm leading-none uppercase text-zinc-900">Sarpras <span
                                     class="text-red-600">Digital</span></p>

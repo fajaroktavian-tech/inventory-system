@@ -83,7 +83,7 @@ class AssetReportIndex extends Component
     {
         $query = $this->reportType === 'procurement'
             ? AssetProcurement::with('user')
-            : AssetMaintenance::with(['user', 'asset.itemInfo', 'asset.room']);
+            : AssetMaintenance::with(['user','room', 'asset.itemInfo', 'asset.room']);
 
         return $query->whereBetween('created_at', [$this->startDate . ' 00:00:00', $this->endDate . ' 23:59:59'])
             ->latest()
