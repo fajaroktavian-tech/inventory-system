@@ -102,7 +102,7 @@ class AssetRequestIndex extends Component
     }
     public function openModal($tab = null)
     {
-        $allowedProcurementRoles = ['admin', 'petugas', 'kesiswaan', 'hubin', 'koordinator_guru', 'petugas_perpus', 'kaprog'];
+        $allowedProcurementRoles = ['admin', 'petugas', 'kesiswaan', 'hubin','kurikulum', 'koordinator_guru', 'petugas_perpus', 'kaprog'];
         $canProcure = in_array(Auth::user()->role, $allowedProcurementRoles);
         $this->reset([
             'procurementId',

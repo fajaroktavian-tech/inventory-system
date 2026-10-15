@@ -100,7 +100,7 @@ class AssetRegistration extends Component
                 : [],
 
             'filteredPics' => strlen($this->search_pic) > 1
-                ? User::whereIn('role', ['guru', 'staff', 'admin'])
+                ? User::whereIn('role', ['guru', 'staff', 'admin', 'kesiswaan', 'kaprog', 'koordinator_guru', 'petugas_perpus', 'hubin'])
                     ->where('name', 'like', '%' . $this->search_pic . '%')->get()
                 : [],
 

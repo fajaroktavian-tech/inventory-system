@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sarpras Digital - SMKN 7 Baleendah</title>
     @livewireStyles
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -86,7 +85,7 @@
                                 </div>
                             </a>
 
-                            <a href="#"
+                            <a href="{{ route('sarpras.requests') }}"
                                 class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors group/item">
                                 <div class="p-2 bg-gray-50 rounded-lg group-hover/item:bg-white transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -558,7 +557,7 @@
                         <li><a href="{{ route('user.request') }}"
                                 class="hover:text-red-600 transition-colors">Permintaan Barang</a></li>
                         <li><a href="#" class="hover:text-red-600 transition-colors">Peminjaman Ruang</a></li>
-                        <li><a href="#" class="hover:text-red-600 transition-colors">Pelaporan Kerusakan</a></li>
+                        <li><a href="{{ route('sarpras.requests') }}" class="hover:text-red-600 transition-colors">Pelaporan Kerusakan</a></li>
                         <li><a href="#" class="hover:text-red-600 transition-colors">Status Inventaris</a></li>
                     </ul>
                 </div>

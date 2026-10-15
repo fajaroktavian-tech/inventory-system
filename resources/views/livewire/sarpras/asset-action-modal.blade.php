@@ -73,7 +73,7 @@
 
             <flux:select wire:model="new_pic_id" label="Pilih PIC Baru" required>
                 <option value="">-- Pilih Penanggung Jawab --</option>
-                @foreach(\App\Models\User::whereIn('role', ['guru', 'staff', 'admin'])->get() as $user)
+                @foreach(\App\Models\User::whereIn('role', ['guru', 'staff', 'admin', 'kaprog', 'kesiswaan','hubin','kordinator_guru','kurikulum','petugas_perpus'])->get() as $user)
                     <option value="{{ $user->id }}">{{ $user->name }}</option>
                 @endforeach
             </flux:select>

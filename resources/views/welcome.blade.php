@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="text-center mb-16">
-        <h1 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">Layanan Terpadu SMKN 7 Baleendah</h1>
+        <h1 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">Layanan Digital SMKN 7 Baleendah</h1>
         <p class="text-gray-600 max-w-2xl mx-auto">Selamat datang di sistem manajemen sekolah. Silakan pilih modul layanan
             yang Anda butuhkan di bawah ini.</p>
     </div>
@@ -34,7 +34,7 @@
             <h3 class="text-xl font-bold mb-2">Sistem Absensi</h3>
             <p class="text-gray-500 mb-6">Monitoring kehadiran siswa, data piket, dan laporan kedisiplinan secara real-time.
             </p>
-            <a href="{{ route('dashboard.absen') }}" class="text-blue-600 font-semibold inline-flex items-center">
+            <a href="{{ route('monitor') }}" class="text-blue-600 font-semibold inline-flex items-center">
                 Masuk Modul &rarr;
             </a>
         </div>

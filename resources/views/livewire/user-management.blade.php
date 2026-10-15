@@ -13,6 +13,7 @@
             <option value="admin">Administrator</option>
             <option value="kesiswaan">Kesiswaan</option>
             <option value="hubin">Hubin</option>
+            <option value="hubin">Kurikulum</option>
             <option value="kaprog">Kepala Program</option>
             <option value="koordinator_guru">Koordinator Guru</option>
             <option value="petugas_perpus">Petugas Perpustakaan</option>
@@ -65,7 +66,7 @@
                             $color = match ($user->role) {
                                 'admin' => 'red',
                                 'kesiswaan', 'hubin' => 'purple',
-                                'kaprog', 'koordinator_guru' => 'indigo',
+                                'kaprog', 'koordinator_guru','kurikulum' => 'indigo',
                                 'petugas_perpus' => 'teal',
                                 'walikelas' => 'blue',
                                 'piket' => 'orange',
@@ -143,6 +144,7 @@
                     <optgroup label="Management">
                         <option value="kesiswaan">Kesiswaan</option>
                         <option value="hubin">Hubin</option>
+                        <option value="kurikulum">Kurikulum</option>
                         <option value="kaprog">Kepala Program</option>
                         <option value="koordinator_guru">Koordinator Guru</option>
                         <option value="petugas_perpus">Petugas Perpustakaan</option>  
