@@ -77,7 +77,7 @@ class UserManagement extends Component
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,'.$this->userId,
             'email' => 'nullable|email|unique:users,email,'.$this->userId,
-            'role' => 'required|in:admin,petugas,owner,guru,staff,siswa,kesiswaan,walikelas,piket',
+            'role' => 'required|in:admin,petugas,owner,guru,staff,siswa,kesiswaan,walikelas,piket,kaprog,koordinator_guru,petugas_perpus,hubin',
             'password' => $this->userId ? 'nullable|min:6' : 'required|min:6',
             'class_id' => 'nullable|exists:class_models,id',
             'new_avatar' => 'nullable|image|max:1024', // Validasi file gambar maks 0,5MB

@@ -6,7 +6,16 @@
         </div>
         <flux:button icon="question-mark-circle" wire:click="$set('isGuideOpen', true)" variant="ghost">Panduan
         </flux:button>
-        <flux:button variant="primary" icon="plus" wire:click="openModal">Buat Pengajuan Baru</flux:button>
+        @php
+                $allowedProcurementRoles = ['admin', 'petugas', 'kesiswaan', 'hubin', 'koordinator_guru', 'petugas_perpus', 'kaprog'];
+                $canProcure = in_array(Auth::user()->role, $allowedProcurementRoles);
+            @endphp
+
+            @if($canProcure)
+                <flux:button variant="primary" icon="plus" wire:click="openModal">Buat Pengajuan Baru</flux:button>
+            @else
+                <flux:button variant="primary" icon="plus" wire:click="openModal">Laporkan Kerusakan</flux:button>
+            @endif
     </div>
 
     @if (session()->has('message'))
@@ -15,10 +24,12 @@
 
     <!-- Tab Navigasi -->
     <div class="flex gap-2 border-b pb-3 mb-4">
+    @if($canProcure)
         <flux:button variant="{{ $activeTab === 'procurement' ? 'primary' : 'subtle' }}"
             wire:click="$set('activeTab', 'procurement')">
             Pengadaan Aset & BHP
         </flux:button>
+        @endif
         <flux:button variant="{{ $activeTab === 'maintenance' ? 'primary' : 'subtle' }}"
             wire:click="$set('activeTab', 'maintenance')">
             Laporan Perbaikan (Maintenance)
@@ -227,8 +238,10 @@
             <flux:heading size="lg">Formulir Pengajuan / Laporan</flux:heading>
 
             <div class="flex gap-2 mb-2">
+            @if($canProcure)
                 <flux:button variant="{{ $activeTab === 'procurement' ? 'primary' : 'subtle' }}"
                     wire:click="$set('activeTab', 'procurement')">Pengadaan Barang</flux:button>
+            @endif
                 <flux:button variant="{{ $activeTab === 'maintenance' ? 'primary' : 'subtle' }}"
                     wire:click="$set('activeTab', 'maintenance')">Laporkan Kerusakan</flux:button>
             </div>

@@ -16,7 +16,6 @@ class AssetRequestIndex extends Component
 {
     use WithPagination, WithFileUploads;
     public $assetSearch = '';
-
     public $activeTab = 'procurement'; // Pilihan tab: 'procurement' (Aset/BHP) atau 'maintenance' (Perbaikan)
     public $search = '';
     public $filterStatus = '';
@@ -103,6 +102,8 @@ class AssetRequestIndex extends Component
     }
     public function openModal($tab = null)
     {
+        $allowedProcurementRoles = ['admin', 'petugas', 'kesiswaan', 'hubin', 'koordinator_guru', 'petugas_perpus', 'kaprog'];
+        $canProcure = in_array(Auth::user()->role, $allowedProcurementRoles);
         $this->reset([
             'procurementId',
             'maintenanceId',
@@ -123,12 +124,23 @@ class AssetRequestIndex extends Component
 
         if ($tab) {
             $this->activeTab = $tab;
+        } else {
+            // Jika user biasa membuka modal, paksa tab langsung ke maintenance
+            $this->activeTab = $canProcure ? 'procurement' : 'maintenance';
         }
         $this->isModalOpen = true;
     }
 
     public function saveProcurement()
     {
+        $allowedProcurementRoles = ['admin', 'petugas', 'kesiswaan', 'hubin', 'koordinator_guru', 'petugas_perpus', 'kaprog'];
+
+        // Proteksi keamanan backend
+        if (!in_array(Auth::user()->role, $allowedProcurementRoles)) {
+            session()->flash('message', 'Akses ditolak. Anda tidak memiliki wewenang melakukan pengadaan.');
+            $this->isModalOpen = false;
+            return;
+        }
         $this->validate([
             'type' => 'required|in:aset,bhp',
             'item_name' => 'required|string|max:255',
@@ -203,5 +215,16 @@ class AssetRequestIndex extends Component
         }
 
         session()->flash('message', 'Status pengajuan berhasil diperbarui.');
+    }
+    public function mount()
+    {
+        $user = Auth::user();
+        $allowedProcurementRoles = ['admin', 'petugas', 'kesiswaan', 'hubin', 'koordinator_guru', 'petugas_perpus', 'kaprog'];
+        
+        // Jika user yang login TIDAK memiliki hak akses pengadaan, 
+        // arahkan otomatis tab aktifnya langsung ke 'maintenance' (Perbaikan)
+        if (!in_array($user->role, $allowedProcurementRoles)) {
+            $this->activeTab = 'maintenance';
+        }
     }
 }
