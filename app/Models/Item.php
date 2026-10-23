@@ -11,7 +11,9 @@ class Item extends Model
         'category_id', // Gunakan category_id sesuai migration terbaru
         'unit',
         'stock',
-        'min_stock'
+        'min_stock',
+        'photo',
+
     ];
 
     public function category()

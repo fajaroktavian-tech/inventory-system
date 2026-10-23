@@ -9,10 +9,10 @@
         <div class="flex gap-2">
             {{-- Dropdown Export --}}
             <flux:button icon="question-mark-circle" wire:click="$set('isItemsGuideOpen', true)" variant="ghost">
-                    Panduan
-                </flux:button>
+                Panduan
+            </flux:button>
             <flux:dropdown align="end">
-                
+
                 <flux:button icon-trailing="chevron-down" variant="outline">
                     Export Data
                 </flux:button>
@@ -40,6 +40,7 @@
         <flux:table.columns>
             {{-- Tambah Kolom No --}}
             <flux:table.column>No</flux:table.column>
+            <flux:table.column>Foto</flux:table.column>
             <flux:table.column>Nama Barang</flux:table.column>
             <flux:table.column>Kategori</flux:table.column>
             <flux:table.column>Stok</flux:table.column>
@@ -53,6 +54,17 @@
                     {{-- Rumus No Urut Pagination: (HalamanSekarang - 1) * PerHalaman + Iterasi + 1 --}}
                     <flux:table.cell>
                         {{ ($items->currentPage() - 1) * $items->perPage() + $loop->iteration }}
+                    </flux:table.cell>
+                    {{-- Menampilkan Foto --}}
+                    <flux:table.cell>
+                        @if($item->photo)
+                            <a href="{{ Storage::url($item->photo) }}" target="_blank"
+                                class="block w-10 h-10 rounded overflow-hidden border hover:opacity-80 transition">
+                                <img src="{{ Storage::url($item->photo) }}" alt="Foto" class="w-full h-full object-cover">
+                            </a>
+                        @else
+                            <span class="text-xs text-zinc-400 italic">Tidak ada</span>
+                        @endif
                     </flux:table.cell>
 
                     <flux:table.cell font="medium">{{ $item->name }}</flux:table.cell>
@@ -116,6 +128,30 @@
             </div>
 
             <flux:input label="Minimal Stok" type="number" wire:model="min_stock" />
+            {{-- Input Upload Foto & Preview --}}
+            <div class="space-y-1">
+                <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Foto Barang (Opsional)</label>
+                <input type="file" wire:model="new_photo" accept="image/*" class="block w-full text-xs text-zinc-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-xs file:font-semibold
+                    file:bg-zinc-100 file:text-zinc-700
+                    hover:file:bg-zinc-200 dark:file:bg-zinc-700 dark:file:text-zinc-200
+                "/>
+                <span class="text-[11px] text-zinc-400">Format: JPG, PNG, JPEG. Maksimal: 2MB.</span>
+                @error('new_photo') <span class="text-xs text-red-600 block">{{ $message }}</span> @enderror
+
+                {{-- Preview Foto --}}
+                @if ($new_photo)
+                    <div class="mt-2 relative w-20 h-20 rounded-lg overflow-hidden border border-zinc-200">
+                        <img src="{{ $new_photo->temporaryUrl() }}" class="w-full h-full object-cover">
+                    </div>
+                @elseif ($photo)
+                    <div class="mt-2 relative w-20 h-20 rounded-lg overflow-hidden border border-zinc-200">
+                        <img src="{{ Storage::url($photo) }}" class="w-full h-full object-cover">
+                    </div>
+                @endif
+            </div>
 
             <div class="flex mt-6">
                 <flux:spacer />

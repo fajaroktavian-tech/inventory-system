@@ -31,7 +31,7 @@ class AssetRegistration extends Component
     public $search_catalog = '';
     public $search_room = '';
     public $search_pic = '';
-    public $search_filter_room = ''; // Teks yang diketik di input filter
+    public $search_filter_room = '';
     public $filterRoomName = null;
 
     // Properti untuk menyimpan pilihan yang sudah diklik

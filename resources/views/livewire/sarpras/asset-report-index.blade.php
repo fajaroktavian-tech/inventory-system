@@ -2,7 +2,7 @@
     <!-- Header Halaman -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-            <flux:heading size="xl">Laporan Sarana & Prasarana</flux:heading>
+            <flux:heading size="xl">Laporan Pengajuan Sarana & Prasarana</flux:heading>
             <flux:subheading>Rekapitulasi data pengadaan barang dan riwayat pemeliharaan aset sekolah.</flux:subheading>
         </div>
 

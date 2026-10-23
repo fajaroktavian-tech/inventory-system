@@ -6,19 +6,21 @@ use App\Models\Item;
 use App\Models\Category;
 use Livewire\Component;
 use Livewire\WithPagination;
-// Tambahkan di bagian paling atas
 use App\Exports\ItemsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 
 
 class ItemManagement extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
     public $isItemsGuideOpen = false;
 
     public $search = '';
+    public $photo, $new_photo;
     public $itemId, $name, $category_id, $unit, $stock, $min_stock;
     public $isModalOpen = false;
 
@@ -45,7 +47,7 @@ class ItemManagement extends Component
 
     public function create()
     {
-        $this->reset(['name', 'category_id', 'unit', 'stock', 'min_stock', 'itemId']);
+        $this->reset(['name', 'category_id', 'unit', 'stock', 'min_stock', 'itemId', 'photo', 'new_photo']);
         $this->stock = 0;
         $this->min_stock = 0;
         $this->isModalOpen = true;
@@ -56,10 +58,12 @@ class ItemManagement extends Component
         $item = Item::findOrFail($id);
         $this->itemId = $id;
         $this->name = $item->name;
-        $this->category_id = $item->category_id; // Simpan ID kategori
+        $this->category_id = $item->category_id;
         $this->unit = $item->unit;
         $this->stock = $item->stock;
         $this->min_stock = $item->min_stock;
+        $this->photo = $item->photo; // Simpan path foto lama
+        $this->new_photo = null;
         $this->isModalOpen = true;
     }
 
@@ -71,6 +75,7 @@ class ItemManagement extends Component
             'unit' => 'required|string|max:50',
             'stock' => 'required|numeric|min:0',
             'min_stock' => 'required|numeric|min:0',
+            'new_photo' => 'nullable|image|max:2048',
         ]);
 
         Item::updateOrCreate(['id' => $this->itemId], [
@@ -81,11 +86,24 @@ class ItemManagement extends Component
             'min_stock' => $this->min_stock,
         ]);
 
+        // Handle upload foto baru
+        if ($this->new_photo) {
+            if ($this->photo) {
+                Storage::disk('public')->delete($this->photo); // Hapus foto lama
+            }
+            $data['photo'] = $this->new_photo->store('items', 'public');
+        }
+        Item::updateOrCreate(['id' => $this->itemId], $data);
+
         $this->isModalOpen = false;
         session()->flash('message', 'Data Barang Berhasil Disimpan.');
     }
     public function delete($id)
     {
+        $item = Item::find($id);
+        if ($item && $item->photo) {
+            Storage::disk('public')->delete($item->photo);
+        }
         Item::destroy($id);
         session()->flash('message', 'Barang Berhasil Dihapus.');
     }

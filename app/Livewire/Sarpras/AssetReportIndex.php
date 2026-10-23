@@ -55,18 +55,19 @@ class AssetReportIndex extends Component
     public function render()
     {
         $data = $this->getQueryData();
-        
-        $totalCost = $this->reportType === 'procurement' 
-            ? $data->sum(fn($item) => $item->estimated_price * $item->qty)
-            : 0;
 
+        // Hitung total estimasi anggaran HANYA untuk pengajuan yang DISETUJUI / SELESAI
+        $totalCost = $this->reportType === 'procurement'
+            ? $data->filter(fn($item) => in_array($item->status, ['approved', 'completed']))
+                ->sum(fn($item) => $item->estimated_price * $item->qty)
+            : 0;
         // Hitung metrik status dari koleksi data yang sudah terfilter
         $totalCount = $data->count();
         $pendingCount = $data->where('status', 'pending')->count();
-        
+
         // Untuk disetujui, bisa mencakup 'approved' atau 'repaired'
         $approvedCount = $data->filter(fn($item) => in_array($item->status, ['approved', 'repaired']))->count();
-        
+
         $rejectedCount = $data->where('status', 'rejected')->count();
 
         return view('livewire.sarpras.asset-report-index', [
@@ -83,7 +84,7 @@ class AssetReportIndex extends Component
     {
         $query = $this->reportType === 'procurement'
             ? AssetProcurement::with('user')
-            : AssetMaintenance::with(['user','room', 'asset.itemInfo', 'asset.room']);
+            : AssetMaintenance::with(['user', 'room', 'asset.itemInfo', 'asset.room']);
 
         return $query->whereBetween('created_at', [$this->startDate . ' 00:00:00', $this->endDate . ' 23:59:59'])
             ->latest()
