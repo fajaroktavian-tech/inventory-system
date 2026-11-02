@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class AssetItemManagement extends Component
 {
-    use WithPagination, WithFileUploads; // Perbaikan: Cukup satu kali
+    use WithPagination, WithFileUploads; 
 
     public $search = '';
     public $itemId, $name, $category_id, $brand, $specification;

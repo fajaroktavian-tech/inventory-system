@@ -128,17 +128,19 @@
             </div>
 
             <flux:input label="Minimal Stok" type="number" wire:model="min_stock" />
+
             {{-- Input Upload Foto & Preview --}}
             <div class="space-y-1">
                 <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Foto Barang (Opsional)</label>
                 <input type="file" wire:model="new_photo" accept="image/*" class="block w-full text-xs text-zinc-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-md file:border-0
-                    file:text-xs file:font-semibold
-                    file:bg-zinc-100 file:text-zinc-700
-                    hover:file:bg-zinc-200 dark:file:bg-zinc-700 dark:file:text-zinc-200
-                "/>
-                <span class="text-[11px] text-zinc-400">Format: JPG, PNG, JPEG. Maksimal: 2MB.</span>
+        file:mr-4 file:py-2 file:px-4
+        file:rounded-md file:border-0
+        file:text-xs file:font-semibold
+        file:bg-zinc-100 file:text-zinc-700
+        hover:file:bg-zinc-200 dark:file:bg-zinc-700 dark:file:text-zinc-200
+    " />
+                <span class="text-[11px] text-zinc-400">Format: JPG, PNG, JPEG. Otomatis dikompres oleh sistem (Maks.
+                    upload awal 5MB).</span>
                 @error('new_photo') <span class="text-xs text-red-600 block">{{ $message }}</span> @enderror
 
                 {{-- Preview Foto --}}
