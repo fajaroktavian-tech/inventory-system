@@ -4,8 +4,6 @@
             <flux:heading size="xl">Pengajuan & Pemeliharaan Aset</flux:heading>
             <flux:subheading>Kelola pengadaan barang baru, BHP, serta laporan perbaikan inventaris.</flux:subheading>
         </div>
-        <flux:button icon="question-mark-circle" wire:click="$set('isGuideOpen', true)" variant="ghost">Panduan
-        </flux:button>
         @php
                 $allowedProcurementRoles = ['admin', 'petugas', 'kesiswaan', 'hubin', 'koordinator_guru', 'petugas_perpus', 'kaprog'];
                 $canProcure = in_array(Auth::user()->role, $allowedProcurementRoles);
@@ -62,7 +60,7 @@
                         <th class="p-3">Nama Barang</th>
                         <th class="p-3">Qty</th>
                         <th class="p-3">Estimasi Harga</th>
-                        <th class="p-3">Alasan / Keterangan</th>
+                        <th class="p-3">Alasan & Spesifikasi </th>
                         <th class="p-3">Status</th>
                         @if(Auth::user()->isAdmin() || Auth::user()->isPetugas())
                             <th class="p-3 text-center">Aksi</th>
@@ -259,8 +257,8 @@
                         <flux:input wire:model="estimated_price" type="number" label="Estimasi Harga Satuan (Rp)"
                             placeholder="Opsional" />
                     </div>
-                    <flux:textarea wire:model="reason" label="Alasan / Kebutuhan"
-                        placeholder="Jelaskan untuk keperluan KBM / Kegiatan apa..." required />
+                    <flux:textarea wire:model="reason" label="Alasan Pengajuan & Spesifikasi Barang" rows="3"
+                        placeholder="Jelaskan untuk keperluan KBM dan Spesifikasi..." required />
 
                     <!-- TAMBAHAN: Input Upload Foto untuk Pengadaan -->
                     <div class="space-y-1">
@@ -399,63 +397,6 @@
                         </div>
                     </form>
             @endif
-        </div>
-    </flux:modal>
-
-    {{-- MODAL PANDUAN PENGGUNAAN --}}
-    <flux:modal wire:model="isGuideOpen" class="md:w-[650px]">
-        <div class="space-y-6">
-            <flux:heading size="lg">Panduan Pengajuan & Pemeliharaan Aset</flux:heading>
-
-            <div class="space-y-4 text-sm text-zinc-600 dark:text-zinc-300">
-                <p>Halaman ini dirancang untuk memfasilitasi guru dan staf dalam mengajukan kebutuhan barang baru serta
-                    melaporkan kerusakan inventaris atau fasilitas sekolah.</p>
-
-                <div class="space-y-3">
-                    <div
-                        class="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                        <span class="font-bold text-zinc-800 dark:text-zinc-200">1. Tab Pengadaan Aset & BHP</span>
-                        <p class="text-xs mt-1">Digunakan untuk mengajukan permintaan pembelian barang baru. Terdapat
-                            dua jenis:</p>
-                        <ul class="list-disc list-inside text-xs mt-1 space-y-1">
-                            <li><strong>Aset Inventaris:</strong> Barang bernilai investasi/jangka panjang (Contoh:
-                                Proyektor, Meja, Lemari).</li>
-                            <li><strong>Barang Habis Pakai (BHP):</strong> Barang yang habis dalam pemakaian rutin
-                                (Contoh: Tinta Printer, Spidol, Kertas HVS).</li>
-                        </ul>
-                    </div>
-
-                    <div
-                        class="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                        <span class="font-bold text-zinc-800 dark:text-zinc-200">2. Tab Laporan Perbaikan
-                            (Maintenance)</span>
-                        <p class="text-xs mt-1">Digunakan saat ada kerusakan fasilitas atau alat. Saat membuat laporan,
-                            Anda dapat memilih dua kategori:</p>
-                        <ul class="list-disc list-inside text-xs mt-1 space-y-1">
-                            <li><strong>Aset Inventaris Alat:</strong> Untuk melaporkan alat spesifik yang bernomor seri
-                                (S/N) seperti PC, Laptop, atau Printer.</li>
-                            <li><strong>Fasilitas / Infrastruktur Ruangan:</strong> Untuk melaporkan kerusakan bagian
-                                gedung atau fasilitas umum tanpa nomor seri (Contoh: Pipa air bocor, korsleting saklar
-                                listrik, gagang pintu rusak di ruangan tertentu).</li>
-                        </ul>
-                    </div>
-
-                    <div class="p-3 bg-sky-50 dark:bg-sky-900/20 rounded-lg border border-sky-100 dark:border-sky-800">
-                        <span class="font-semibold text-sky-800 dark:text-sky-300 text-xs">Keterangan Status
-                            Laporan:</span>
-                        <div class="grid grid-cols-2 gap-2 mt-2 text-xs">
-                            <div>🟡 <strong>Pending:</strong> Menunggu ditinjau Admin/Petugas.</div>
-                            <div>🔵 <strong>Process:</strong> Sedang dalam penanganan/perbaikan.</div>
-                            <div>🟢 <strong>Repaired / Selesai:</strong> Perbaikan telah selesai.</div>
-                            <div>🔴 <strong>Rejected:</strong> Pengajuan/laporan ditolak.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-end">
-                <flux:button variant="primary" wire:click="$set('isGuideOpen', false)">Mengerti</flux:button>
-            </div>
         </div>
     </flux:modal>
 </div>
