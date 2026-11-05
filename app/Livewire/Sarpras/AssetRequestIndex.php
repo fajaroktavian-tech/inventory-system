@@ -244,6 +244,64 @@ class AssetRequestIndex extends Component
 
         session()->flash('message', 'Status pengajuan berhasil diperbarui.');
     }
+
+    public function deleteRequest($id, $type = 'procurement')
+    {
+        // 1. Proteksi Keamanan: Hanya Admin/Petugas yang bisa hapus
+        if (!Auth::user()->isAdmin() && !Auth::user()->isPetugas()) {
+            session()->flash('message', 'Akses ditolak. Anda tidak wewenang menghapus data.');
+            return;
+        }
+
+        if ($type === 'procurement') {
+            $item = AssetProcurement::findOrFail($id);
+        } else {
+            $item = AssetMaintenance::findOrFail($id);
+        }
+
+        // 2. Proteksi Logika: Hanya data 'pending' yang boleh dihapus permanen
+        if ($item->status !== 'pending') {
+            session()->flash('message', 'Hanya data berstatus Pending yang dapat dihapus permanen.');
+            return;
+        }
+
+        // 3. Hapus foto jika ada di Drive D
+        if ($item->photo) {
+            Storage::disk('public')->delete($item->photo);
+        }
+
+        // 4. Hapus data permanen dari Database
+        $item->delete();
+
+        session()->flash('message', 'Pengajuan/Laporan yang salah berhasil dihapus permanen.');
+    }
+
+    // --- FITUR BARU: BATALKAN UNTUK USER (HANYA PENDING) ---
+    public function cancelRequest($id, $type = 'procurement')
+    {
+        if ($type === 'procurement') {
+            $item = AssetProcurement::findOrFail($id);
+        } else {
+            $item = AssetMaintenance::findOrFail($id);
+        }
+
+        // 1. Proteksi Keamanan: Hanya pemohon asli yang bisa batalkan
+        if ($item->user_id !== Auth::id()) {
+            session()->flash('message', 'Akses ditolak. Anda hanya dapat membatalkan pengajuan Anda sendiri.');
+            return;
+        }
+
+        // 2. Proteksi Logika: Hanya data 'pending' yang boleh dibatalkan
+        if ($item->status !== 'pending') {
+            session()->flash('message', 'Pengajuan sudah diproses, tidak dapat dibatalkan.');
+            return;
+        }
+
+        // 3. Ubah status menjadi 'cancelled', JANGAN HAPUS data
+        $item->update(['status' => 'cancelled']);
+
+        session()->flash('message', 'Pengajuan/Laporan Anda berhasil dibatalkan.');
+    }
     public function mount()
     {
         $user = Auth::user();
