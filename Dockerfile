@@ -2,10 +2,15 @@ FROM php:8.4-fpm
 
 # 1. Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev libicu-dev nodejs npm
+    git curl zip unzip \
+    libpng-dev \
+    libjpeg-dev \ 
+    libwebp-dev \
+    libonig-dev libxml2-dev libzip-dev libicu-dev nodejs npm
 
 # 2. Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
+RUN docker-php-ext-configure gd --with-jpeg --with-webp \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
 
 # Tambahkan ini untuk konfigurasi PHP upload
 RUN { \
