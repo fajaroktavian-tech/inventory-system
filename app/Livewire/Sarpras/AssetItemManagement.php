@@ -53,7 +53,7 @@ class AssetItemManagement extends Component
 
     public function store()
     {
-        $this->validate($this->rules());
+        $this->validate();
 
         // 1. Siapkan data dasar yang akan disimpan
         $data = [
