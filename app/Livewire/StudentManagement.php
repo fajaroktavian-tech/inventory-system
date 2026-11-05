@@ -11,6 +11,8 @@ use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
 use App\Imports\StudentsImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Image\Image;
+use Spatie\Image\Enums\Fit;
 
 class StudentManagement extends Component
 {
@@ -19,7 +21,7 @@ class StudentManagement extends Component
     public $import_file;
 
     public $search = '';
-    public $studentId, $name, $username, $rfid_uid, $class_id; // class_id ditambahkan
+    public $studentId, $name, $username, $rfid_uid, $class_id; 
     public $nis, $phone, $address, $avatar, $new_avatar;
     public $selectedStudent;
     public $isDetailModalOpen = false;
@@ -33,7 +35,7 @@ class StudentManagement extends Component
     public function render()
     {
         return view('livewire.student-management', [
-            'students' => User::with(['class.prodi']) // Eager load sampai ke prodi
+            'students' => User::with(['class.prodi']) 
                 ->where('role', 'siswa')
                 ->where(
                     fn($q) =>
@@ -62,7 +64,7 @@ class StudentManagement extends Component
             'nis' => 'nullable|unique:users,nis,' . $this->studentId,
             'rfid_uid' => 'required|unique:users,rfid_uid,' . $this->studentId,
             'class_id' => 'required|exists:class_models,id',
-            'new_avatar' => 'nullable|image|max:500', // Max 1MB
+            'new_avatar' => 'nullable|image|max:5120',
         ];
 
         $this->validate($rules);
@@ -89,7 +91,26 @@ class StudentManagement extends Component
             if ($this->avatar) {
                 Storage::disk('public')->delete($this->avatar);
             }
-            $data['avatar'] = $this->new_avatar->store('avatars', 'public');
+            // 1. Buat nama file unik (Timestamp + Nama Asli)
+            $filename = time() . '_' . $this->new_avatar->getClientOriginalName();
+            $folder = 'avatars';
+            
+            // 2. Tentukan path lengkap penyimpanan fisik di dalam container (menunjuk ke Drive D)
+            $targetPath = storage_path('app/public/' . $folder . '/' . $filename);
+
+            // 3. Pastikan direktori tujuan ada, jika tidak, buat
+            if (!file_exists(storage_path('app/public/' . $folder))) {
+                mkdir(storage_path('app/public/' . $folder), 0777, true);
+            }
+
+            // 4. Lakukan Kompresi & Manipulasi dengan Spatie Image
+            Image::load($this->new_avatar->getRealPath())
+                ->fit(Fit::Crop, 500, 500) 
+                ->quality(70) 
+                ->save($targetPath);
+
+            // 5. Set path relatif untuk disimpan di Database
+            $data['avatar'] = $folder . '/' . $filename;
         }
 
         User::updateOrCreate(['id' => $this->studentId], $data);

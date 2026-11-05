@@ -18,7 +18,7 @@
 
     <flux:table>
         <flux:table.columns>
-        <flux:table.column>Foto</flux:table.column>
+            <flux:table.column>Foto</flux:table.column>
             <flux:table.column>Nama Barang</flux:table.column>
             <flux:table.column>Kategori</flux:table.column>
             <flux:table.column>Merk</flux:table.column>
@@ -29,12 +29,16 @@
         <flux:table.rows>
             @foreach($items as $item)
                 <flux:table.row :key="$item->id">
-                    {{-- Kolom Foto Barang --}}
                     <flux:table.cell>
                         @if($item->image)
-                            <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}" class="w-12 h-12 rounded-lg object-cover border border-zinc-200 dark:border-zinc-700">
+                            <a href="{{ Storage::url($item->image) }}" target="_blank"
+                                class="block w-12 h-12 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 hover:opacity-80 transition">
+                                <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}"
+                                    class="w-full h-full object-cover">
+                            </a>
                         @else
-                            <div class="w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 text-xs font-medium border border-zinc-200 dark:border-zinc-700">
+                            <div
+                                class="w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 text-xs font-medium border border-zinc-200 dark:border-zinc-700">
                                 No Pic
                             </div>
                         @endif
@@ -74,19 +78,24 @@
                 <flux:label>Foto Barang (Opsional)</flux:label>
                 <div class="flex items-center gap-4">
                     @if ($new_image)
-                        <img src="{{ $new_image->temporaryUrl() }}" class="w-16 h-16 rounded-lg object-cover border shadow-sm">
+                        <img src="{{ $new_image->temporaryUrl() }}"
+                            class="w-16 h-16 rounded-lg object-cover border shadow-sm">
                     @elseif ($image)
-                        <img src="{{ asset('storage/' . $image) }}" class="w-16 h-16 rounded-lg object-cover border shadow-sm">
+                        <img src="{{ asset('storage/' . $image) }}"
+                            class="w-16 h-16 rounded-lg object-cover border shadow-sm">
                     @else
-                        <div class="w-16 h-16 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 text-xs border">
+                        <div
+                            class="w-16 h-16 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 text-xs border">
                             Preview
                         </div>
                     @endif
                     <div class="flex-1">
-                        <input type="file" wire:model="new_image" class="text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-zinc-800 dark:file:text-zinc-300">
+                        <input type="file" wire:model="new_image"
+                            class="text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-zinc-800 dark:file:text-zinc-300">
                     </div>
                 </div>
-                @error('new_image') <p class="text-xs text-red-500 mt-1 font-medium">{{ $message }}</p> @enderror
+                @error('new_image')
+                <p class="text-xs text-red-500 mt-1 font-medium">{{ $message }}</p> @enderror
             </div>
 
             <flux:input label="Nama Barang" wire:model="name" placeholder="Misal: Laptop ASUS Expertbook" />
