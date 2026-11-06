@@ -11,6 +11,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Image\Image; 
+use Spatie\Image\Enums\Fit;
 
 
 
@@ -78,20 +80,42 @@ class ItemManagement extends Component
             'new_photo' => 'nullable|image|max:2048',
         ]);
 
-        Item::updateOrCreate(['id' => $this->itemId], [
+        $data = [
             'name' => $this->name,
             'category_id' => $this->category_id,
             'unit' => $this->unit,
             'stock' => $this->stock,
             'min_stock' => $this->min_stock,
-        ]);
+        ];
 
-        // Handle upload foto baru
         if ($this->new_photo) {
+            // Hapus foto lama jika ada (saat edit)
             if ($this->photo) {
-                Storage::disk('public')->delete($this->photo); // Hapus foto lama
+                Storage::disk('public')->delete($this->photo); 
             }
-            $data['photo'] = $this->new_photo->store('items', 'public');
+
+            // --- LOGIC AUTO COMPRESS MULAI ---
+            
+            // a. Buat nama file unik (Timestamp + Nama Asli)
+            $filename = time() . '_' . $this->new_photo->getClientOriginalName();
+            $folder = 'items';
+            
+            // b. Tentukan path lengkap penyimpanan fisik (Drive D)
+            $targetPath = storage_path('app/public/' . $folder . '/' . $filename);
+
+            // c. Pastikan direktori ada, jika tidak, buat
+            if (!file_exists(storage_path('app/public/' . $folder))) {
+                mkdir(storage_path('app/public/' . $folder), 0777, true);
+            }
+
+            // d. Lakukan Kompresi & Manipulasi (Kotak 500x500)
+            Image::load($this->new_photo->getRealPath())
+                ->fit(Fit::Crop, 500, 500) 
+                ->quality(70) 
+                ->save($targetPath); 
+
+            
+            $data['photo'] = $folder . '/' . $filename;
         }
         Item::updateOrCreate(['id' => $this->itemId], $data);
 
