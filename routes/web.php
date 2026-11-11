@@ -46,6 +46,9 @@ use App\Http\Controllers\PrintController;
 use App\Livewire\HolidayManager;
 use App\Livewire\Sarpras\AssetIndex;
 use App\Livewire\AttendanceRecapByClass;
+use App\Livewire\Perpustakaan\BukuTamuScanner;
+use App\Livewire\Perpustakaan\LibraryReportIndex;
+use App\Livewire\Perpustakaan\LibraryDashboardIndex;
 
 Route::get('/', function () {
     return view('welcome');
@@ -80,6 +83,8 @@ Route::get('/kios-aset', AssetRfidLoan::class)->name('kios-aset');
 Route::get('/kios', KiosGateway::class)->name('kios.gateway');
 
 Route::get('/attendance-gateway', AttendanceGateway::class)->name('attendance.gateway');
+
+Route::get('/perpustakaan/buku-tamu', BukuTamuScanner::class)->name('perpustakaan.buku-tamu');
 
 
 // --- AKSES TERPROTEKSI (HARUS LOGIN) ---
@@ -128,6 +133,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['auth', 'role:piket,admin'])->name('attendance.')->group(function () {
         Route::get('/absensi/piket', PiketEntry::class)->name('piket');
     });
+
+    Route::get('/perpustakaan/laporan', LibraryReportIndex::class)->name('library.report.index');
+    Route::get('/perpustakaan/dashboard', LibraryDashboardIndex::class)->name('library.dashboard');
     // --- GRUP KHUSUS ADMIN & PETUGAS ---
     Route::middleware(['can:manage-inventory'])->group(function () {
         Route::get('/items', ItemManagement::class)->name('items.index');

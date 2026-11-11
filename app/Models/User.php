@@ -115,4 +115,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(AssetMaintenance::class);
     }
+
+    public function libraryVisits()
+    {
+        return $this->hasMany(LibraryVisit::class);
+    }
 }

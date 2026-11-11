@@ -18,7 +18,18 @@
         <flux:sidebar.nav>
             {{-- PLATFORM GROUP --}}
             <flux:sidebar.group :heading="__('Platform')" class="grid">
-                <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
+            @php
+                    // Default tujuan adalah dashboard utama (Sarpras/BHP)
+                    $dashboardRoute = 'dashboard';
+
+                    // Jika user adalah petugas perpustakaan, arahkan langsung ke dashboard perpus
+                    if (auth()->user()->role === 'petugas_perpus') {
+                        $dashboardRoute = 'library.dashboard';
+                    }
+                @endphp
+
+                <flux:sidebar.item icon="home" :href="route($dashboardRoute)" 
+                    :current="request()->routeIs(['dashboard', 'library.dashboard'])"
                     wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:sidebar.item>
@@ -91,7 +102,7 @@
             {{-- MODUL ABSENSI (Terbuka untuk Admin, Kesiswaan, Walikelas, Piket) --}}
             @if(in_array(auth()->user()->role, ['admin', 'kesiswaan', 'walikelas', 'piket']))
                 <flux:sidebar.group :heading="__('Absensi')" class="grid mt-4">
-                    {{-- Navigasi Landing Page Dinamis Menghindari Akses 403 --}}
+
                     @php
                         $attendanceRoute = 'attendance.recapby.class'; // Default aman untuk admin/kesiswaan
                         if (auth()->user()->role === 'walikelas') {
@@ -104,6 +115,15 @@
                     <flux:sidebar.item icon="finger-print" :href="route($attendanceRoute)"
                         :current="request()->routeIs(['attendance.*'])" wire:navigate>
                         Manajemen Absensi
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+            @endif
+
+            @if(in_array(auth()->user()->role, ['admin', 'petugas_perpus']))
+                <flux:sidebar.group :heading="__('Perpustakaan')" class="grid mt-4">
+                    <flux:sidebar.item icon="book-open" :href="route('library.report.index')"
+                        :current="request()->routeIs(['library.*'])" wire:navigate>
+                        Manajemen Perpustakaan
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             @endif
@@ -134,21 +154,31 @@
             </flux:dropdown>
         </flux:navbar>
 
-        @if(request()->routeIs(['dashboard.absen', 'dashboard', 'dashboard-asset']))
+        @if(request()->routeIs(['dashboard.absen', 'dashboard', 'dashboard-asset','library.dashboard']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
-                <flux:navbar.item icon="chart-bar" :href="route('dashboard.absen')"
-                    :current="request()->routeIs('dashboard.absen')" wire:navigate>
-                    Dashboard Absensi
-                </flux:navbar.item>
+                @if(in_array(auth()->user()->role, ['admin', 'kesiswaan']))
+                    <flux:navbar.item icon="chart-bar" :href="route('dashboard.absen')"
+                        :current="request()->routeIs('dashboard.absen')" wire:navigate>
+                        Dashboard Absensi
+                    </flux:navbar.item>
+                @endif
 
-                <flux:navbar.item icon="archive-box" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
-                    wire:navigate>
-                    Dashboard BHP
-                </flux:navbar.item>
-                <flux:navbar.item icon="rectangle-stack" :href="route('dashboard-asset')"
-                    :current="request()->routeIs('dashboard-asset')" wire:navigate>
-                    Dashboard Aset
-                </flux:navbar.item>
+                @if(in_array(auth()->user()->role, ['admin', 'petugas']))
+                    <flux:navbar.item icon="archive-box" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
+                        wire:navigate>
+                        Dashboard BHP
+                    </flux:navbar.item>
+                    <flux:navbar.item icon="rectangle-stack" :href="route('dashboard-asset')"
+                        :current="request()->routeIs('dashboard-asset')" wire:navigate>
+                        Dashboard Aset
+                    </flux:navbar.item>
+                @endif
+                @if(in_array(auth()->user()->role, ['admin', 'petugas_perpus']))
+                    <flux:navbar.item icon="book-open" :href="route('library.dashboard')"
+                        :current="request()->routeIs('library.dashboard')" wire:navigate>
+                        Dashboard Perpustakaan
+                    </flux:navbar.item>
+                @endif
             </flux:navbar>
         @endif
 
@@ -277,6 +307,18 @@
                         Input Manual/Piket
                     </flux:navbar.item>
                 @endif
+            </flux:navbar>
+        @endif
+
+        @if(request()->routeIs(['library.report.index']))
+            <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
+
+                {{-- Laporan detail (Buku Tamu jangka panjang) --}}
+                <flux:navbar.item icon="chart-pie" :href="route('library.report.index')"
+                    :current="request()->routeIs('library.report.index')" wire:navigate>
+                    Laporan Buku Tamu (Detail)
+                </flux:navbar.item>
+
             </flux:navbar>
         @endif
     </flux:header>

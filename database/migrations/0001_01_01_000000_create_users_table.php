@@ -17,8 +17,8 @@ return new class extends Migration {
             $table->string('email')->nullable()->unique(); // Email dibuat nullable jika tidak wajib
             $table->string('password');
             $table->enum('role', ['admin', 'petugas', 'owner','guru','staff'])->default('petugas'); // Tambahkan role
-            $table->string('rfid_uid')->nullable()->unique(); // Tambahkan RFID UID
-            $table->boolean('is_active')->default(true); // Tambahkan status user
+            $table->string('rfid_uid')->nullable()->unique(); 
+            $table->boolean('is_active')->default(true); 
             $table->rememberToken();
             $table->timestamps();
         });
