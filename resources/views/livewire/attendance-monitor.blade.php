@@ -85,6 +85,14 @@
                             <option value="sakit">Sakit</option>
                         </select>
                     </div>
+                    <div>
+                        <select wire:model.live="filterClass" class="w-full sm:w-40 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-100 focus:outline-none focus:border-indigo-500">
+                            <option value="">Semua Kelas</option>
+                            @foreach($classes as $class)
+                                <option value="{{ $class->id }}">{{ $class->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
                 <div>
                     <button wire:click="export" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-lg shadow-sm transition cursor-pointer">

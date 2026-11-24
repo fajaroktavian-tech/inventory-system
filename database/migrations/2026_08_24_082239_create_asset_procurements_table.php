@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('asset_procurements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete(); // Siapa yang mengajukan
-            $table->enum('type', ['aset', 'bhp']); // Pilihan: Aset atau Barang Habis Pakai
-            $table->string('item_name'); // Nama barang yang diajukan
-            $table->integer('qty'); // Jumlah
-            $table->decimal('estimated_price', 15, 2)->nullable(); // Perkiraan harga satuan/total
-            $table->text('reason'); // Alasan / Kebutuhan untuk apa
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete(); 
+            $table->enum('type', ['aset', 'bhp']); 
+            $table->string('item_name'); 
+            $table->integer('qty'); 
+            $table->decimal('estimated_price', 15, 2)->nullable(); 
+            $table->text('reason'); 
             $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
-            $table->text('admin_note')->nullable(); // Catatan dari sarpras/admin jika ditolak/disetujui
+            $table->text('admin_note')->nullable(); 
             $table->timestamps();
         });
     }

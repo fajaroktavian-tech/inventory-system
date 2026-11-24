@@ -19,6 +19,7 @@ class AttendanceMonitor extends Component
 
     public $search = '';
     public $filterStatus = '';
+    public $filterClass = '';
 
     // Render akan dipanggil otomatis setiap kali polling berjalan
     public function export()
@@ -58,6 +59,8 @@ class AttendanceMonitor extends Component
             'tidak_hadir' => $isHoliday ? 0 : max(0, $totalSiswa - Attendance::where('date', $today)->count()),
         ];
 
+        $classes = ClassModel::orderBy('name')->get();
+
         // 2. Daftar Aktivitas Terbaru (Log Absensi)
         $latestLogs = Attendance::with(['student.class'])
             ->where('date', $today)
@@ -69,12 +72,20 @@ class AttendanceMonitor extends Component
             ->when($this->filterStatus, function ($q) {
                 $q->where('status', $this->filterStatus);
             })
+
+            ->when($this->filterClass, function ($q) {
+                $q->whereHas('student', function ($query) {
+                    $query->where('class_id', $this->filterClass);
+                });
+            })
+
             ->latest()
             ->paginate(10);
 
             return view('livewire.attendance-monitor', [
                 'stats' => $stats,
-                'latestLogs' => $latestLogs
-            ])->layout('layouts.guest-monitor-absen'); // <-- Gunakan layout publik di sini
+                'latestLogs' => $latestLogs,
+                'classes' => $classes
+            ])->layout('layouts.guest-monitor-absen'); 
     }
 }
