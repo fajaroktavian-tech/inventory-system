@@ -3,81 +3,136 @@
 namespace App\Exports;
 
 use App\Models\User;
+use App\Models\SchoolCalendar;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Carbon\Carbon;
 
-class AttendanceExport implements FromQuery, WithMapping, WithHeadings, WithStyles, ShouldAutoSize
+class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithTitle, ShouldAutoSize
 {
-    protected $startDate, $endDate, $classId;
+    protected $startDate;
+    protected $endDate;
+    protected $className;
 
-    public function __construct($startDate, $endDate, $classId)
+    /**
+     * Constructor untuk menerima parameter filter dari komponen Livewire.
+     *
+     * @param string $startDate Tanggal mulai (Y-m-d)
+     * @param string $endDate Tanggal selesai (Y-m-d)
+     * @param string|null $className Nama kelas yang difilter (opsional)
+     */
+    public function __construct($startDate, $endDate, $className = null)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
-        $this->classId = $classId;
+        $this->className = $className;
     }
-
     public function query()
     {
-        $query = User::query()
+        return User::query()
             ->where('role', 'siswa')
-            ->with(['class'])
+            ->with(['class']) 
+            
             ->withCount([
-                'attendances as total_hadir' => fn($q) => $q->whereBetween('date', [$this->startDate, $this->endDate])->where('status', 'hadir'),
-                'attendances as total_terlambat' => fn($q) => $q->whereBetween('date', [$this->startDate, $this->endDate])->where('status', 'terlambat'),
-                'attendances as total_izin' => fn($q) => $q->whereBetween('date', [$this->startDate, $this->endDate])->whereIn('status', ['izin', 'sakit', 'dispen'])
-            ]);
+                'attendances as total_hadir' => function ($q) {
+                    $q->whereBetween('date', [$this->startDate, $this->endDate])
+                      ->where('status', 'hadir');
+                },
+                'attendances as total_terlambat' => function ($q) {
+                    $q->whereBetween('date', [$this->startDate, $this->endDate])
+                      ->where('status', 'terlambat');
+                },
+                'attendances as total_izin' => function ($q) {
+                    $q->whereBetween('date', [$this->startDate, $this->endDate])
+                      ->whereIn('status', ['izin', 'sakit', 'dispen']);
+                }
+            ])
+            ->when($this->className, function ($query) {
+                $query->whereHas('class', function ($subQuery) {
+                    $subQuery->where('name', $this->className);
+                });
+            })
 
-        if ($this->classId) {
-            $query->where('class_name_search', $this->classId);
-        }
-
-        return $query;
+            ->orderBy('name');
     }
 
+    /**
+     * Menentukan judul header untuk file Excel.
+     *
+     * @return array
+     */
     public function headings(): array
     {
-        $range = Carbon::parse($this->startDate)->format('d/m/Y') . ' - ' . Carbon::parse($this->endDate)->format('d/m/Y');
         return [
-            ['LAPORAN REKAPITULASI ABSENSI SISWA'],
-            ['Periode: ' . $range],
-            [''], // Baris kosong
-            ['Nama Siswa', 'NIS', 'Kelas', 'Hadir', 'Terlambat', 'Izin/Sakit', 'Persentase']
+            'Nama Siswa',
+            'NIS',
+            'Kelas',
+            'Total Hadir',
+            'Total Terlambat',
+            'Total Izin/Sakit',
+            'Total Alpa',
+            'Efektivitas (%)',
         ];
     }
 
-    public function map($user): array
+    /**
+     * Memetakan setiap baris data dari query ke kolom yang sesuai di Excel.
+     *
+     * @param mixed $row Satu baris hasil query (instance App\Models\User)
+     * @return array
+     */
+    public function map($row): array
     {
-        // Hitung hari kerja (Senin-Jumat)
-        $start = Carbon::parse($this->startDate);
-        $end = Carbon::parse($this->endDate);
-        $hariEfektif = $start->diffInDaysFiltered(fn(Carbon $date) => $date->isWeekday(), $end) + ($start->isWeekday() ? 1 : 0);
+        // 1. Hitung jumlah hari efektif (hari sekolah) dalam periode ini
+        // Mengambil data dari tabel school_calendars
+        $hariEfektif = SchoolCalendar::whereBetween('date', [$this->startDate, $this->endDate])
+            ->where('is_holiday', false)
+            ->count();
 
-        $totalMasuk = $user->total_hadir + $user->total_terlambat + $user->total_izin;
-        $persentase = $hariEfektif > 0 ? round(($totalMasuk / $hariEfektif) * 100) : 0;
+        // 2. Hitung total hari siswa masuk (Hadir + Terlambat + Izin)
+        $totalMasuk = $row->total_hadir + $row->total_terlambat + $row->total_izin;
 
+        // 3. Hitung Alpa (Hari efektif dikurangi total masuk, tidak boleh negatif)
+        $alpa = max(0, $hariEfektif - $totalMasuk);
+
+        // 4. Hitung persentase kehadiran
+        $persentase = $hariEfektif > 0
+            ? round(($totalMasuk / $hariEfektif) * 100)
+            : 0;
+
+        // 5. Kembalikan array data yang sudah dipetakan sesuai headings
         return [
-            $user->name,
-            $user->nis,
-            $user->class->name ?? '-',
-            $user->total_hadir,
-            $user->total_terlambat,
-            $user->total_izin,
-            $persentase . '%'
+            $row->name,
+            $row->nis,
+            $row->class->name ?? '-', // Tampilkan nama kelas, atau '-' jika tidak ada
+            $row->total_hadir,
+            $row->total_terlambat,
+            $row->total_izin,
+            $alpa, // Nilai alpa yang dihitung secara dinamis
+            $persentase . '%', // Tambahkan simbol %
         ];
     }
 
-    public function styles(Worksheet $sheet)
+    /**
+     * Menentukan judul sheet atau nama file default saat diexport.
+     *
+     * @return string
+     */
+    public function title(): string
     {
-        return [
-            1 => ['font' => ['bold' => true, 'size' => 14]],
-            2 => ['font' => ['bold' => true]],
-            4 => ['font' => ['bold' => true], 'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E2E8F0']]],
-        ];
+        $formattedStart = Carbon::parse($this->startDate)->format('d-m-Y');
+        $formattedEnd = Carbon::parse($this->endDate)->format('d-m-Y');
+
+        $title = 'Rekap_Absen_' . $formattedStart . '_s.d._' . $formattedEnd;
+
+        if ($this->className) {
+            $title .= '_Kelas_' . $this->className;
+        }
+
+        // Batasi panjang judul maksimal 31 karakter (batasan Excel)
+        return \Illuminate\Support\Str::limit($title, 31, '');
     }
 }

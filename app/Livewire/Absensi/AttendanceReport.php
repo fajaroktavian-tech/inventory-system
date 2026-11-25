@@ -15,7 +15,6 @@ class AttendanceReport extends Component
 {
     use WithPagination;
 
-    // Properti filter baru
     public $startDate;
     public $isRecapGuideOpen = false;
     public $selectedStudentDetail = null;
@@ -75,10 +74,8 @@ class AttendanceReport extends Component
             });
         }
 
-        // 4. Ambil data untuk Statistik (Tanpa Pagination)
         $allStudentsData = (clone $baseQuery)->get();
 
-        // --- LOGIKA STATISTIK ---
         $totalHadirTepatWaktu = $allStudentsData->sum('total_hadir');
         $totalKapasitas = $allStudentsData->count() * $hariEfektif;
         $rataRataHadir = $totalKapasitas > 0 ? round(($totalHadirTepatWaktu / $totalKapasitas) * 100, 1) : 0;
@@ -153,11 +150,8 @@ class AttendanceReport extends Component
 
     private function getAktifDaysCount($startDate, $endDate)
     {
-        // Menggunakan tabel school_calendars untuk menghitung hari efektif
         return \App\Models\SchoolCalendar::whereBetween('date', [$startDate, $endDate])
             ->where('is_holiday', false)
             ->count();
     }
-
-
 }

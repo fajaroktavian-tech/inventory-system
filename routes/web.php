@@ -49,6 +49,7 @@ use App\Livewire\AttendanceRecapByClass;
 use App\Livewire\Perpustakaan\BukuTamuScanner;
 use App\Livewire\Perpustakaan\LibraryReportIndex;
 use App\Livewire\Perpustakaan\LibraryDashboardIndex;
+use App\Livewire\Absensi\AttendanceDetailByClass;
 
 Route::get('/', function () {
     return view('welcome');
@@ -118,10 +119,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     //Admin dan Kesiswaan
-    Route::middleware(['auth', 'role:admin,kesiswaan'])->name('attendance.')->group(function () {
+    Route::middleware(['auth', 'role:admin,kesiswaan,guru'])->name('attendance.')->group(function () {
         Route::get('/absensi/rekap', AttendanceReport::class)->name('report');
         Route::get('/attendance/recap-class', AttendanceRecapByClass::class)->name('recapby.class');
+        Route::get('/absensi/rekap/kelas/{classId}/tanggal/{date}', AttendanceDetailByClass::class)
+             ->name('attendance.detail.class');
     });
+
+    
 
     // 2. Akses Wali Kelas (Hanya untuk kelasnya sendiri)
     Route::middleware(['auth', 'role:walikelas,admin'])->name('attendance.')->group(function () {

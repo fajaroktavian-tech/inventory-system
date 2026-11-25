@@ -14,11 +14,6 @@ use Maatwebsite\Excel\Facades\Excel;
 class AttendanceRecapByClass extends Component
 {
     use WithPagination;
-    // Properti untuk Modal Detail Siswa Belum Absen
-    public $isModalOpen = false;
-    public $selectedClassName = '';
-    public $absentStudents = [];
-
     public $search = '';
     public $selectedDate;
 
@@ -36,25 +31,6 @@ class AttendanceRecapByClass extends Component
     public function updatedSelectedDate()
     {
         $this->resetPage();
-    }
-
-    // Method untuk membuka modal dan mengambil daftar siswa yang belum absen (alpa) di kelas tersebut
-    public function showAbsentStudents($classId)
-    {
-        $class = ClassModel::with('students')->findOrFail($classId);
-        $this->selectedClassName = $class->name;
-
-        // Ambil ID siswa yang sudah memiliki record absensi pada tanggal tersebut
-        $attendedUserIds = Attendance::whereDate('date', $this->selectedDate)
-            ->whereIn('user_id', $class->students->pluck('id'))
-            ->pluck('user_id');
-
-        // Siswa yang belum absen adalah siswa di kelas tersebut yang ID-nya tidak ada di $attendedUserIds
-        $this->absentStudents = $class->students()
-            ->whereNotIn('id', $attendedUserIds)
-            ->get();
-
-        $this->isModalOpen = true;
     }
     public function render()
     {
@@ -100,7 +76,7 @@ class AttendanceRecapByClass extends Component
                 }
             }
 
-            $class->id = $class->id; // Pastikan ID kelas terbawa
+            $class->id = $class->id;
             $class->students_count = $totalStudents;
             $class->rekap = [
                 'hadir' => $hadir,

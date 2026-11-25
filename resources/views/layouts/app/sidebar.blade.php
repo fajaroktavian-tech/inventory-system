@@ -100,7 +100,7 @@
             @endif
 
             {{-- MODUL ABSENSI (Terbuka untuk Admin, Kesiswaan, Walikelas, Piket) --}}
-            @if(in_array(auth()->user()->role, ['admin', 'kesiswaan', 'walikelas', 'piket']))
+            @if(in_array(auth()->user()->role, ['admin', 'kesiswaan', 'walikelas', 'piket','guru']))
                 <flux:sidebar.group :heading="__('Absensi')" class="grid mt-4">
 
                     @php
@@ -276,7 +276,7 @@
         @if(request()->routeIs(['attendance.*']))
             <flux:navbar scrollable class="-mb-px px-4 lg:px-8">
                 {{-- Akses Kesiswaan & Admin --}}
-                @if(in_array(auth()->user()->role, ['admin', 'kesiswaan']))
+                @if(in_array(auth()->user()->role, ['admin', 'kesiswaan','guru']))
 
                     <flux:navbar.item icon="chart-pie" :href="route('attendance.recapby.class')"
                         :current="request()->routeIs('attendance.recapby.class')" wire:navigate>
